@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Master Your System</title>
+<meta name="theme-color" content="#b66635">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&display=swap">
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  /* Layout: Eine Spalte. Orange Fläche, darauf cremefarbene Karten: zwei Apps, dann die Anleitung. */
+  --orange:#b66635;
+  --cream:#f6e3c8;
+  --cream-2:#ecd2ad;
+  --ink:#1c0f08;
+  --muted:#47311f;
+  --f:'Bricolage Grotesque',system-ui,-apple-system,'Segoe UI',sans-serif;
+  color-scheme:light;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+[hidden]{display:none!important}
+html{background:var(--orange)}
+body{
+  margin:0;min-height:100%;background:var(--orange);color:var(--ink);
+  font-family:var(--f);font-size:17px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:16px 32px;
+}
+.app{width:100%;max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+button,a{font:inherit}
+.brand{font:800 13px/1.2 var(--f);letter-spacing:.1em;text-transform:uppercase}
+h1{margin:0;font:800 clamp(36px,11vw,52px)/1.02 var(--f);letter-spacing:-.01em;text-wrap:balance}
+.lead{margin:0;font:600 19px/1.4 var(--f);max-width:34ch;text-wrap:balance}
+
+.card{background:var(--cream);border-radius:18px;padding:18px}
+.apps{display:flex;flex-direction:column;gap:16px}
+.app-card{display:flex;gap:16px;align-items:center}
+.app-card img{flex:none;width:76px;height:76px;border-radius:18px;display:block;background:var(--cream-2)}
+.app-card .t{min-width:0;flex:1}
+.app-card h2{margin:0;font:800 22px/1.15 var(--f)}
+.app-card p{margin:4px 0 0;font:500 15px/1.35 var(--f);color:var(--muted)}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 20px;border-radius:12px;border:2px solid var(--ink);background:var(--ink);color:var(--cream);font:700 16px/1 var(--f);text-decoration:none;cursor:pointer}
+.btn.alt{background:transparent;color:var(--ink)}
+.app-card .btn{margin-top:12px;min-height:44px}
+
+h3{margin:0;font:800 17px/1.2 var(--f);letter-spacing:.06em;text-transform:uppercase}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.seg button{min-height:48px;border-radius:12px;border:2px solid var(--ink);background:transparent;color:var(--ink);font:700 16px/1 var(--f);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--cream)}
+ol{list-style:none;counter-reset:s;margin:16px 0 0;padding:0;display:flex;flex-direction:column;gap:14px}
+ol li{counter-increment:s;display:flex;gap:14px;align-items:flex-start;font:600 18px/1.35 var(--f)}
+ol li::before{content:counter(s);flex:none;width:34px;height:34px;border-radius:50%;background:var(--ink);color:var(--cream);display:grid;place-items:center;font:800 16px/1 var(--f)}
+ol li span{padding-top:4px}
+.note{margin:16px 0 0;padding-top:14px;border-top:1px solid var(--cream-2);font:500 15px/1.4 var(--f);color:var(--muted)}
+.facts{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
+.facts li{padding:8px 14px;border-radius:999px;background:var(--ink);color:var(--cream);font:700 14px/1.2 var(--f)}
+.share{width:100%}
+.foot{text-align:center;font:800 13px/1.2 var(--f);letter-spacing:.1em;text-transform:uppercase}
+.toast{position:fixed;left:50%;bottom:max(24px,env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:var(--ink);color:var(--cream);padding:12px 18px;border-radius:12px;font:600 15px/1.2 var(--f);opacity:0;pointer-events:none;transition:opacity .2s ease,transform .2s ease;max-width:calc(100% - 32px);text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+a:focus-visible,button:focus-visible{outline:3px solid var(--cream);outline-offset:3px}
+.card a:focus-visible,.card button:focus-visible{outline-color:var(--ink)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main class="app">
+  <div class="brand">What is a Happy Self</div>
+  <h1>Master Your System</h1>
+  <p class="lead">Your app for 90 days of energy, focus and EQ.</p>
+  <ul class="facts" aria-label="Features">
+    <li>Participants only</li><li>With access code</li><li>Data stays on your device</li>
+  </ul>
+
+  <section class="apps" aria-label="App">
+    <article class="card app-card">
+      <img src="../icon-512.png" alt="" width="76" height="76">
+      <div class="t">
+        <h2>Master Your System</h2>
+        <p>13 weeks with unit, micro-habit, reflection and self-assessment.</p>
+        <a class="btn" href="../">Open app</a>
+      </div>
+    </article>
+  </section>
+
+  <section class="card" aria-labelledby="c1">
+    <h3 id="c1">Access code</h3>
+    <p class="note" style="border:0;margin:0;padding:0">You received the code from your coaches. You enter it once when opening the app. After that, the app remembers it on this device.</p>
+  </section>
+
+  <section class="card" aria-labelledby="hl">
+    <h3 id="hl">Add to home screen</h3>
+    <div class="seg" role="group" aria-label="Choose device">
+      <button type="button" id="b-ios" aria-pressed="true">iPhone</button>
+      <button type="button" id="b-and" aria-pressed="false">Android</button>
+    </div>
+    <ol id="steps-ios">
+      <li><span>Open this page in <b>Safari</b>. It does not work inside other apps such as WhatsApp or Instagram.</span></li>
+      <li><span>Tap <b>Open app</b> and enter your code.</span></li>
+      <li><span>In the opened app, tap the <b>Share icon</b> at the bottom (square with an arrow pointing up).</span></li>
+      <li><span>Choose <b>Add to Home Screen</b> and tap <b>Add</b>.</span></li>
+    </ol>
+    <ol id="steps-and" hidden>
+      <li><span>Open this page in <b>Chrome</b>.</span></li>
+      <li><span>Tap <b>Open app</b> and enter your code.</span></li>
+      <li><span>In the opened app, tap the <b>menu</b> with the three dots at the top right.</span></li>
+      <li><span>Choose <b>Install app</b> or <b>Add to Home screen</b>.</span></li>
+    </ol>
+    <p class="note">Afterwards the app sits on your home screen with its own icon. Your entries stay on your device. If you clear browser data or change devices, the app starts from scratch. Use the backup in the app to move your data.</p>
+  </section>
+
+  <section class="card" aria-labelledby="h2">
+    <h3 id="h2">Good to know</h3>
+    <p class="note" style="border:0;margin:0;padding:0">The app accompanies your coaching and does not replace medical or psychotherapeutic treatment. If you have questions, write to your coaches.</p>
+  </section>
+
+  <button class="btn alt share" id="share" type="button">Share this page</button>
+  <p class="foot" style="letter-spacing:0;text-transform:none;font-weight:700"><a href="../../start/" style="color:inherit">Deutsche Version</a></p>
+  <div class="foot">What is a Happy Self</div>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+(function(){
+'use strict';
+function $(id){return document.getElementById(id)}
+var ios=$('b-ios'),and=$('b-and'),si=$('steps-ios'),sa=$('steps-and');
+function pick(isIos){
+  ios.setAttribute('aria-pressed',isIos?'true':'false');
+  and.setAttribute('aria-pressed',isIos?'false':'true');
+  si.hidden=!isIos;sa.hidden=isIos;
+}
+ios.addEventListener('click',function(){pick(true)});
+and.addEventListener('click',function(){pick(false)});
+try{if(/android/i.test(navigator.userAgent))pick(false)}catch(e){}
+
+var tt=null;
+function say(m){var t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(function(){t.classList.remove('on')},2600)}
+function fallback(text){
+  var ta=document.createElement('textarea');ta.value=text;ta.setAttribute('readonly','');
+  ta.style.cssText='position:fixed;left:-9999px;top:0';document.body.appendChild(ta);ta.select();
+  var ok=false;try{ok=document.execCommand('copy')}catch(e){}
+  document.body.removeChild(ta);return ok;
+}
+function copy(url){
+  function done(){say('Link copied. Now paste it into a message.')}
+  function fail(){if(fallback(url))done();else say('Copying not possible')}
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url).then(done,fail)}else fail();
+}
+$('share').addEventListener('click',function(){
+  var url=location.href.split('#')[0];
+  if(navigator.share){
+    navigator.share({title:'Master Your System',text:'The app for your 90-day program.',url:url}).catch(function(err){
+      if(!err||err.name!=='AbortError')copy(url);
+    });
+  }else copy(url);
+});
+})();
+</script>
+</body>
+</html>
