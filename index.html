@@ -50,6 +50,7 @@ body{
 
 .top{display:flex;align-items:flex-start;gap:14px;min-height:44px}
 .rounds{flex:1;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.rounds.solo{grid-template-columns:1fr}
 .round{min-width:0}
 .bar{height:4px;border-radius:2px;background:var(--line);overflow:hidden}
 .bar i{display:block;height:100%;width:0;background:var(--accent)}
@@ -97,6 +98,7 @@ body{
       <div class="round" aria-label="Runde 2"><div class="bar"><i></i></div><div class="lab"><b>1 Minute</b><span>+ 15 Sekunden</span></div></div>
       <div class="round" aria-label="Runde 3"><div class="bar"><i></i></div><div class="lab"><b>1:30 Minuten</b><span>+ 15 Sekunden</span></div></div>
     </div>
+    <div class="rounds solo" id="solo" hidden><div class="round is-now"><div class="bar"><i></i></div><div class="lab"><b id="solo-t"></b><span id="solo-s"></span></div></div></div>
     <button id="btn-sound" class="icon-btn" type="button" aria-pressed="true" aria-label="Ton ausschalten">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><g class="waves"><path d="M16.5 9.2a4 4 0 0 1 0 5.6"/><path d="M19 6.7a7.5 7.5 0 0 1 0 10.6"/></g><g class="off"><path d="M16.5 9.5l4.5 5M21 9.5l-4.5 5"/></g></svg>
     </button>
@@ -113,6 +115,7 @@ body{
     <h1 id="ttl" aria-live="polite"></h1>
   </section>
 
+  <div class="seg" id="modes" role="radiogroup" aria-label="Übung"></div>
   <div class="seg" id="seg" role="radiogroup" aria-label="Atemtempo"></div>
 
   <div class="controls">
@@ -129,6 +132,11 @@ body{
 var HOLDS=[30,60,90];            // Haltezeit nach der Ausatmung je Runde, in Sekunden
 var BREATHS=30, PREP=3, REC_IN=3.2, REC_HOLD=15, REC_OUT=3.2, INHALE=0.52;
 var TEMPOS={calm:{name:'Ruhig',cycle:4.0},normal:{name:'Normal',cycle:3.2},fast:{name:'Zügig',cycle:2.6}};
+var PROGS={
+  wh:{name:'Wim Hof'},
+  slow:{name:'4-6 Atmen',t:'4 Sekunden ein, 6 aus',s:'3 Minuten',cyc:10000,n:18,seg:[4000,6000]},
+  sigh:{name:'Seufzen',t:'Zweimal ein, lang aus',s:'3 Minuten',cyc:9000,n:20,seg:[2000,1000,6000]}
+};
 var TAU=Math.PI*2;
 
 function $(id){return document.getElementById(id)}
@@ -139,19 +147,27 @@ function ease(x){x=Math.min(1,Math.max(0,x));return (1-Math.cos(Math.PI*x))/2}
 var reduce=false;try{reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches}catch(e){}
 
 var el={stage:$('stage'),orb:$('orb'),cv:$('cv'),word:$('word'),ttl:$('ttl'),
-  main:$('btn-main'),side:$('btn-side'),sound:$('btn-sound'),seg:$('seg')};
+  main:$('btn-main'),side:$('btn-side'),sound:$('btn-sound'),seg:$('seg'),modes:$('modes'),rounds:$('rounds'),solo:$('solo'),soloT:$('solo-t'),soloS:$('solo-s')};
 var roundEls=[].slice.call(document.querySelectorAll('.round'));
 var ctx=el.cv.getContext('2d');
 
-var st={mode:'idle',tempo:load('wh-tempo','normal'),sound:load('wh-sound','on')!=='off',
+var st={prg:load('wh-prg','wh'),mode:'idle',tempo:load('wh-tempo','normal'),sound:load('wh-sound','on')!=='off',
   phases:[],idx:0,e:0,bk:-1,pc:-1,hm:0,early:null,prog:0,sideAct:'stop'};
 if(!TEMPOS[st.tempo])st.tempo='normal';
+if(!PROGS[st.prg])st.prg='wh';
 var roundTotals=[];
 
 /* ---------- Ablauf ---------- */
 function build(){
   var cyc=TEMPOS[st.tempo].cycle*1000,a=[],r,i,off,ph,list;
   roundTotals=[];
+  if(st.prg!=='wh'){
+    var P=PROGS[st.prg];
+    list=[{t:'prep',dur:PREP*1000},{t:'cyc',dur:P.n*P.cyc,cyc:P.cyc}];
+    off=0;
+    for(i=0;i<list.length;i++){ph=list[i];ph.r=0;ph.off=off;off+=ph.dur;a.push(ph)}
+    roundTotals.push(off);st.phases=a;return;
+  }
   for(r=0;r<HOLDS.length;r++){
     list=[{t:'prep',dur:PREP*1000},{t:'breath',dur:BREATHS*cyc,cyc:cyc},{t:'hold',dur:HOLDS[r]*1000},
       {t:'recIn',dur:REC_IN*1000},{t:'recHold',dur:REC_HOLD*1000},{t:'recOut',dur:REC_OUT*1000}];
@@ -195,6 +211,7 @@ function phaseStart(ph){
   else if(ph.t==='recOut')tone(330,ph.dur/1000,{to:190,gain:0.07});
 }
 function phaseEnd(ph,natural){
+  if(ph.t==='cyc'&&natural)chime();
   if(ph.t==='hold'){st.early=null;if(natural)chime()}
   else if(ph.t==='recHold')bell(523,1.4);
 }
@@ -259,6 +276,19 @@ Object.keys(TEMPOS).forEach(function(key){
   });
   el.seg.appendChild(b);
 });
+Object.keys(PROGS).forEach(function(key){
+  var b=document.createElement('button');
+  b.type='button';b.id='prg-'+key;b.setAttribute('role','radio');
+  b.textContent=PROGS[key].name;
+  b.addEventListener('click',function(){
+    if(st.mode==='run'||st.mode==='pause')return;
+    st.prg=key;save('wh-prg',key);st.mode='idle';syncModes();
+  });
+  el.modes.appendChild(b);
+});
+function syncModes(){
+  [].forEach.call(el.modes.children,function(b){b.setAttribute('aria-checked',b.id==='prg-'+st.prg?'true':'false')});
+}
 function syncSeg(){
   [].forEach.call(el.seg.children,function(b){b.setAttribute('aria-checked',b.id==='tempo-'+st.tempo?'true':'false')});
 }
@@ -272,11 +302,28 @@ function step(dt,now){
   vs.filled=0;vs.curF=-1;
   if(m==='idle'||m==='done'||!ph){
     pT=reduce?0.4:0.4+0.14*Math.sin(now/1000*TAU/7);gT=0.5;
-    if(m==='done'){vs.filled=BREATHS;vs.word='Fertig';vs.title='Geschafft'}
+    if(m==='done'){vs.filled=st.prg==='wh'?BREATHS:0;vs.word='Fertig';vs.title='Geschafft'}
     else{vs.word='';vs.title=''}
   }else{
     e=st.e;d=ph.dur;
-    if(ph.t==='prep'){
+    if(ph.t==='cyc'){
+      var P=PROGS[st.prg],cn=Math.min(P.n-1,Math.floor(e/P.cyc)),t=e-cn*P.cyc,sg=0,acc=0,sk;
+      while(sg<P.seg.length-1&&t>=acc+P.seg[sg]){acc+=P.seg[sg];sg++}
+      sk=(t-acc)/P.seg[sg];
+      if(st.prg==='slow'){pT=sg===0?ease(sk):1-ease(sk);vs.word=sg===0?'Ein':'Aus'}
+      else if(sg===0){pT=0.78*ease(sk);vs.word='Ein'}
+      else if(sg===1){pT=0.78+0.22*ease(sk);vs.word='Mehr'}
+      else{pT=1-ease(sk);vs.word='Aus'}
+      gT=0.3+0.7*pT;dT=0;aT=1;st.prog=e/d;vs.title='Atmen · '+fmt((d-e)/1000);
+      var ck=cn*4+sg;
+      if(m==='run'&&ck!==st.bk){
+        st.bk=ck;var sc=P.seg[sg]/1000;
+        if(st.prg==='slow'){if(sg===0)tone(200,sc,{to:300,gain:0.07});else tone(300,sc,{to:200,gain:0.06})}
+        else if(sg===0)tone(200,sc,{to:290,gain:0.07});
+        else if(sg===1)tone(290,sc,{to:340,gain:0.07});
+        else tone(340,sc,{to:190,gain:0.06});
+      }
+    }else if(ph.t==='prep'){
       var left=Math.ceil((d-e)/1000);
       pT=0.04;gT=0.35;
       vs.word=String(left);vs.title='Bereit';
@@ -308,6 +355,7 @@ function step(dt,now){
       vs.word='Aus';vs.title='Loslassen';
     }
   }
+  if(st.prg!=='wh')dT=0;
   k=1-Math.exp(-14*dt);rs.p+=(pT-rs.p)*k;
   k=1-Math.exp(-5*dt);rs.g+=(gT-rs.g)*k;rs.dotA+=(dT-rs.dotA)*k;rs.arcA+=(aT-rs.arcA)*k;
 }
@@ -321,9 +369,13 @@ function render(){
   setText(el.word,'word',vs.word);
   setText(el.ttl,'ttl',title);
 
-  setText(el.main,'main',m==='idle'?'Atmung starten':m==='run'?'Pausieren':m==='pause'?'Fortsetzen':'Noch einmal atmen');
+  setText(el.main,'main',m==='idle'?(st.prg==='wh'?'Atmung starten':'Übung starten'):m==='run'?'Pausieren':m==='pause'?'Fortsetzen':'Noch einmal atmen');
   var wide=(m==='idle'||m==='done');
-  if(cache.wide!==wide){cache.wide=wide;el.main.classList.toggle('wide',wide);el.side.hidden=wide;el.seg.style.visibility=wide?'visible':'hidden'}
+  var vk=wide+'|'+st.prg;
+  if(cache.wide!==vk){cache.wide=vk;el.main.classList.toggle('wide',wide);el.side.hidden=wide;el.seg.style.visibility=wide?'visible':'hidden';el.seg.hidden=st.prg!=='wh';el.modes.style.visibility=wide?'visible':'hidden'}
+  var gentle=st.prg!=='wh';
+  if(cache.gentle!==gentle){cache.gentle=gentle;el.rounds.hidden=gentle;el.solo.hidden=!gentle;if(gentle){setText(el.soloT,'st',PROGS[st.prg].t);setText(el.soloS,'ss',PROGS[st.prg].s)}}
+  if(gentle){setText(el.soloT,'st',PROGS[st.prg].t);setText(el.soloS,'ss',PROGS[st.prg].s)}
   var quiet=(m==='run');
   if(cache.quiet!==quiet){cache.quiet=quiet;el.main.classList.toggle('quiet',quiet)}
   var act=(m==='run'&&ph&&ph.t==='hold')?'skip':'stop';
@@ -331,7 +383,12 @@ function render(){
   setText(el.side,'side',act==='skip'?'Halten beenden':'Abbrechen');
   if(cache.tempoKey!==st.tempo){cache.tempoKey=st.tempo;syncSeg()}
 
-  for(i=0;i<roundEls.length;i++){
+  if(gentle){
+    var sf=m==='done'?1:(m!=='idle'&&ph?(ph.off+Math.min(st.e,ph.dur))/roundTotals[0]:0);
+    var sp=(Math.max(0,Math.min(1,sf))*100).toFixed(1)+'%';
+    if(cache.sp!==sp){cache.sp=sp;el.solo.querySelector('i').style.width=sp}
+  }
+  for(i=0;!gentle&&i<roundEls.length;i++){
     var frac=0;
     if(m==='done')frac=1;
     else if(m!=='idle'&&ph){
@@ -404,7 +461,7 @@ function frame(now){
   requestAnimationFrame(frame);
 }
 
-syncSound();syncSeg();
+syncSound();syncSeg();syncModes();
 if(window.ResizeObserver){new ResizeObserver(resize).observe(el.stage)}
 window.addEventListener('resize',resize);
 resize();
