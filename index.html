@@ -280,13 +280,28 @@ function tone(f,dur,o){
   o=o||{};
   if(!o.bell&&st.tone==='bells')return;
   try{
-    var t=ac.currentTime+(o.delay||0),osc=ac.createOscillator(),g=ac.createGain(),v=o.gain||0.08;
-    osc.type='sine';osc.frequency.setValueAtTime(f,t);
-    if(o.to)osc.frequency.exponentialRampToValueAtTime(o.to,t+dur);
-    g.gain.setValueAtTime(0,t);
-    if(o.bell){g.gain.linearRampToValueAtTime(v,t+0.012);g.gain.exponentialRampToValueAtTime(0.0001,t+dur)}
-    else{g.gain.linearRampToValueAtTime(v,t+dur*0.4);g.gain.linearRampToValueAtTime(0,t+dur)}
-    osc.connect(g);g.connect(master);osc.start(t);osc.stop(t+dur+0.05);
+    var t=ac.currentTime+(o.delay||0),v=o.gain||0.08,g=ac.createGain(),lp=ac.createBiquadFilter();
+    lp.type='lowpass';lp.Q.value=0.4;
+    g.gain.setValueAtTime(0.0001,t);
+    if(o.bell){
+      lp.frequency.value=2400;
+      g.gain.linearRampToValueAtTime(v,t+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    }else{
+      /* weicher, tieferer Atemton: Grundton + leise Oktave, Tiefpass, sanfte Hüllkurve */
+      f*=0.62;if(o.to)o.to*=0.62;v*=1.5;
+      lp.frequency.setValueAtTime(380,t);
+      lp.frequency.exponentialRampToValueAtTime(o.to&&o.to>f?900:o.to?380:700,t+dur*0.9);
+      g.gain.exponentialRampToValueAtTime(v,t+dur*0.45);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    }
+    lp.connect(g);g.connect(master);
+    [[1,1],[2,o.bell?0:0.22],[1.5,o.bell?0:0.1]].forEach(function(h){
+      if(!h[1])return;
+      var osc=ac.createOscillator(),hg=ac.createGain();
+      osc.type='sine';osc.frequency.setValueAtTime(f*h[0],t);
+      if(o.to)osc.frequency.exponentialRampToValueAtTime(o.to*h[0],t+dur);
+      hg.gain.value=h[1];osc.connect(hg);hg.connect(lp);osc.start(t);osc.stop(t+dur+0.05);
+    });
   }catch(e){}
 }
 function bell(f,len){tone(f,len||1.8,{bell:true,gain:0.1});tone(f*2,(len||1.8)*0.6,{bell:true,gain:0.025})}
@@ -488,7 +503,7 @@ var vs={filled:0,curF:-1,word:'',title:''};
 
 function step(dt,now){
   var ph=st.phases[st.idx],m=st.mode,pT,gT,dT=1,aT=0,e,d,k;
-  vs.filled=0;vs.curF=-1;
+  vs.filled=0;vs.curF=-1;vs.bx=-1;
   if(m==='idle'||m==='done'||!ph){
     pT=reduce?0.4:0.4+0.14*Math.sin(now/1000*TAU/7);gT=0.5;
     if(m==='done'){vs.filled=st.prg==='wh'?BREATHS:0;vs.word='Fertig';vs.title='Geschafft'}
@@ -506,6 +521,7 @@ function step(dt,now){
       sk=(t-acc)/P.seg[sg];
       if(st.prg==='slow'){pT=sg===0?ease(sk):1-ease(sk);vs.word=sg===0?'Ein':'Aus'}
       else if(st.prg==='box'){
+        vs.bx=sg+sk;
         if(sg===0){pT=ease(sk);vs.word='Ein'}else if(sg===1){pT=1;vs.word='Halten'}
         else if(sg===2){pT=1-ease(sk);vs.word='Aus'}else{pT=0;vs.word='Halten'}
       }
@@ -623,8 +639,9 @@ function draw(){
   ctx.setTransform(el.cv.width/S,0,0,el.cv.width/S,0,0);
   ctx.clearRect(0,0,S,S);
 
-  ctx.lineWidth=1.2*u;ctx.strokeStyle='rgba('+SL+',0.2)';
-  ctx.beginPath();ctx.arc(R,R,R*0.955,0,TAU);ctx.stroke();
+  var isBox=st.prg==='box';
+  if(!isBox){ctx.lineWidth=1.2*u;ctx.strokeStyle='rgba('+SL+',0.2)';
+  ctx.beginPath();ctx.arc(R,R,R*0.955,0,TAU);ctx.stroke();}
 
   if(rs.dotA>0.01){
     for(i=0;i<BREATHS;i++){
@@ -635,13 +652,27 @@ function draw(){
       ctx.fillStyle=col;ctx.beginPath();ctx.arc(x,y,rad,0,TAU);ctx.fill();
     }
   }
-  if(rs.arcA>0.01){
+  if(rs.arcA>0.01&&!isBox){
     var a0=-Math.PI/2,a1=a0+TAU*Math.max(0.0001,Math.min(1,st.prog));
     ctx.lineCap='round';ctx.lineWidth=3*u;ctx.strokeStyle='rgba('+SL+','+rs.arcA.toFixed(3)+')';
     ctx.beginPath();ctx.arc(R,R,R*0.955,a0,a1);ctx.stroke();
   }
 
-  var r=R*(0.34+0.38*rs.p);
+  if(isBox){
+    var hs=R*0.8,C=[[R-hs,R+hs],[R-hs,R-hs],[R+hs,R-hs],[R+hs,R+hs],[R-hs,R+hs]];
+    ctx.lineJoin='round';ctx.lineCap='round';
+    ctx.lineWidth=2*u;ctx.strokeStyle='rgba('+SL+',0.28)';
+    ctx.beginPath();ctx.moveTo(C[0][0],C[0][1]);for(i=1;i<5;i++)ctx.lineTo(C[i][0],C[i][1]);ctx.closePath();ctx.stroke();
+    if(vs.bx>=0){
+      var sgm=Math.min(3,Math.floor(vs.bx)),fr=vs.bx-sgm,A=C[sgm],B=C[sgm+1],px=A[0]+(B[0]-A[0])*fr,py=A[1]+(B[1]-A[1])*fr;
+      ctx.lineWidth=4*u;ctx.strokeStyle='rgba(184,87,39,0.85)';
+      ctx.beginPath();ctx.moveTo(A[0],A[1]);ctx.lineTo(px,py);ctx.stroke();
+      ctx.fillStyle='#b85727';ctx.strokeStyle='#f1e0c6';ctx.lineWidth=2*u;
+      ctx.beginPath();ctx.arc(px,py,7*u,0,TAU);ctx.fill();ctx.stroke();
+    }
+    for(i=0;i<4;i++){ctx.fillStyle='rgba('+SL+',0.55)';ctx.beginPath();ctx.arc(C[i][0],C[i][1],3*u,0,TAU);ctx.fill()}
+  }
+  var r=isBox?R*(0.46+0.30*rs.p):R*(0.34+0.38*rs.p);
   var gR=Math.min(R,r*1.9);
   var g=ctx.createRadialGradient(R,R,r*0.5,R,R,gR);
   g.addColorStop(0,'rgba(184,87,39,'+(0.16*rs.g).toFixed(3)+')');
