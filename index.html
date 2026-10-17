@@ -65,6 +65,8 @@ body{
 .week i.on{background:var(--accent)}
 .week span.today{color:var(--ink);font-weight:600}
 .intro{margin:0;color:var(--muted);font-size:15px}
+.purpose{margin:2px auto 6px;max-width:30ch;min-height:2.8em;font-size:15px;line-height:1.4;color:var(--ink,#3a2418);text-align:center}
+.purpose b{display:block;font-weight:600;color:#b85727;margin-bottom:1px}
 .stats{min-height:1.2em;margin-top:2px;font-size:13px;color:var(--muted);text-align:center;letter-spacing:.02em}
 .pickbtn{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;max-width:380px;margin:6px auto 0;min-height:48px;padding:0 18px;border:1px solid var(--edge);border-radius:999px;background:transparent;color:var(--ink);font:500 16px/1.2 var(--f);cursor:pointer}
 .pickbtn small{color:var(--muted);font-size:13px}
@@ -143,6 +145,7 @@ body{
 
   <section class="copy">
     <h1 id="ttl" aria-live="polite"></h1>
+    <p class="purpose" id="purpose"></p>
     <div class="stats" id="stats"></div>
     <div class="week" id="week" aria-hidden="true"></div>
   </section>
@@ -435,6 +438,13 @@ var ASK=[
   {k:'still',l:'Innehalten',s:'Ohne Vorgabe, nur beobachten',p:'med',d:10,why:'Atem beobachten: ohne Rhythmus, nur wahrnehmen. Meditationsprogramme zeigten in Studien mäßige Effekte auf Angst und Schmerz.'},
   {k:'eve',l:'Abends abschalten',s:'Sanft zur Ruhe kommen',p:'slow',d:5,why:'4-6 Atmen: langsam, mit längerer Ausatmung. Langsames Atmen ging in Studien mit mehr Ruhe einher. Für den Schlaf selbst ist die Belegung schwächer. Die Übung soll dich nur beruhigen.'}
 ];
+var PURPOSE={
+  wh:['Wach werden','Aktiviert den Körper, z. B. am Morgen.'],
+  slow:['Abends abschalten','Langsam, mit längerer Ausatmung – sanft zur Ruhe kommen.'],
+  sigh:['Runterkommen','Anspannung loslassen: zweimal ein, lang aus.'],
+  med:['Innehalten','Ohne Vorgabe, nur den Atem beobachten.'],
+  box:['Fokus finden','Gleichmäßiger Takt, um sich vor einer Aufgabe zu sammeln.']
+};
 var askSel=null;
 function openAsk(){
   var last=load('wh-ask',''),g=$('ask-grid');
@@ -583,6 +593,8 @@ function render(){
   if(m==='pause')title='Pause';
   setText(el.word,'word',vs.word);
   setText(el.ttl,'ttl',title);
+  var pu=PURPOSE[st.prg],pk=(m!=='done'&&pu)?st.prg:'';
+  if(cache.pu!==pk){cache.pu=pk;var pe=$('purpose');pe.textContent='';if(pk){var pb=document.createElement('b');pb.textContent=pu[0];pe.appendChild(pb);pe.appendChild(document.createTextNode(pu[1]))}}
 
   setText(el.stats,'stats',(m==='idle'||m==='done')?statsText():'');
   renderWeek(m==='idle'||m==='done');
