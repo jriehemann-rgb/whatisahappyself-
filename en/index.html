@@ -35,6 +35,7 @@
   --edge:#cdb48d;
   --accent:#b85727;
   --accent-ink:#fff8ee;
+  --accent-text:#9a4519;
   --accent-soft:rgba(184,87,39,.13);
   --f:'Bricolage Grotesque',system-ui,-apple-system,'Segoe UI',sans-serif;
   color-scheme:light;
@@ -58,7 +59,7 @@ body{
 .sheet{position:fixed;inset:0;z-index:10;background:var(--bg);overflow:auto;-webkit-user-select:text;user-select:text;padding:max(20px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(20px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
 .sheet-in{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
 .sheet h2{margin:0;font-weight:600;font-size:26px;line-height:1.2;color:var(--ink)}
-.sheet h3{margin:6px 0 0;font:600 12px/1.2 var(--f);letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+.sheet h3{margin:6px 0 0;font:600 12px/1.2 var(--f);letter-spacing:.14em;text-transform:uppercase;color:var(--accent-text)}
 .sheet p{margin:0;font-size:17px;line-height:1.5}
 .sheet .ref{font-size:13px;line-height:1.45;color:var(--muted)}
 #ask-1,#ask-2{display:flex;flex-direction:column;gap:14px}
@@ -69,7 +70,7 @@ body{
 .week span.today{color:var(--ink);font-weight:600}
 .intro{margin:0;color:var(--muted);font-size:15px}
 .purpose{margin:2px auto 6px;max-width:30ch;min-height:2.8em;font-size:15px;line-height:1.4;color:var(--ink,#3a2418);text-align:center}
-.purpose b{display:block;font-weight:600;color:#b85727;margin-bottom:1px}
+.purpose b{display:block;font-weight:600;color:var(--accent-text);margin-bottom:1px}
 .own{display:grid;grid-template-columns:1fr 1fr;gap:6px;width:100%;max-width:380px;margin:6px auto 0}
 .own .oc{display:flex;align-items:center;justify-content:space-between;gap:4px;padding:4px 6px 4px 14px;border:1px solid var(--edge);border-radius:999px;font-size:14px;color:var(--slate)}
 .own .oc b{font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;min-width:2.2em;text-align:center}
@@ -110,7 +111,7 @@ body{
 .bar i{display:block;height:100%;width:0;background:var(--accent)}
 .lab{margin-top:8px;display:flex;flex-direction:column;font-size:13px;line-height:1.35;color:var(--muted)}
 .lab b{font-weight:600}
-.round.is-now .lab b{color:var(--accent)}
+.round.is-now .lab b{color:var(--accent-text)}
 .round.is-done .lab b{color:var(--ink)}
 .icon-btn{width:44px;height:44px;border-radius:50%;border:1px solid var(--edge);background:transparent;color:var(--slate);display:grid;place-items:center;cursor:pointer;padding:0}
 .icon-btn svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
@@ -119,13 +120,15 @@ body{
 .icon-btn[aria-pressed="false"] .off{display:inline}
 .icon-btn[aria-pressed="false"]{color:var(--muted)}
 
-.stage{flex:1 1 0;min-height:140px;display:grid;place-items:center}
+.stage{flex:1.5 1 0;min-height:140px;display:grid;place-items:center}
 .orb{position:relative}
 .orb canvas{display:block}
 .core{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
 .word{font-weight:400;font-size:max(32px,calc(var(--u,1)*46px));line-height:1;letter-spacing:-.02em;color:var(--accent-ink);font-variant-numeric:tabular-nums}
 
+.rowlab{width:100%;max-width:380px;margin:8px auto -2px;padding-left:6px;font:600 11px/1 var(--f);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
 .copy{text-align:center;padding-block:4px 8px}
+@media (min-height:701px){.copy{flex:1 1 auto;display:flex;flex-direction:column;justify-content:center}}
 .copy h1{margin:0;min-height:1.3em;font-weight:500;font-size:22px;line-height:1.3;letter-spacing:.01em;color:var(--slate)}
 
 .seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;width:100%;max-width:380px;margin:6px auto 0}
@@ -140,6 +143,7 @@ body{
 .btn.wide{grid-column:1/-1}
 .btn:focus-visible,.icon-btn:focus-visible,.seg button:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 @media (max-height:700px){
+  .rowlab{display:none}
   .stage{min-height:96px}
   .brand{margin-top:8px;padding-top:8px}
   .purpose{margin-bottom:0}
@@ -196,9 +200,12 @@ body{
 
   <button class="linkbtn" id="btn-ask" type="button">What do I need right now?</button>
   <div id="modes"><button class="pickbtn" id="btn-pick" type="button" aria-haspopup="dialog"><span id="pick-l"></span><small>change</small></button></div>
+  <div class="rowlab" id="lab-dur">Duration</div>
   <div class="seg" id="durs" role="radiogroup" aria-label="Duration"></div>
+  <div class="rowlab" id="lab-seg">Speed</div>
   <div class="seg" id="seg" role="radiogroup" aria-label="Breathing speed"></div>
   <div class="own" id="own" hidden></div>
+  <div class="rowlab" id="lab-pace" hidden>Pace</div>
   <div class="seg" id="pace" role="radiogroup" aria-label="Pace" hidden></div>
 
   <div class="controls">
@@ -567,7 +574,7 @@ var HOWTO={
   own:'Sit comfortably. Breathe through the nose, without effort.',
   box:'Sit comfortably, shoulders loose. Breathe through the nose, without strain.'
 };
-var EVID={wh:'small, preliminary',slow:'review, mixed results',sigh:'one study, 108 people',med:'many studies on meditation',own:'no study of its own',box:'little evidence, experience'};
+var EVID={wh:'small, preliminary',slow:'review, mixed results',sigh:'one study, 108 people',med:'studies on meditation programs',own:'no study of its own',box:'little evidence, experience'};
 var askSel=null;
 function openAsk(){
   var last=load('wh-ask',''),g=$('ask-grid');
@@ -756,7 +763,7 @@ function render(){
   setText(el.main,'main',m==='idle'?(st.prg==='wh'?'Start breathing':'Start exercise'):m==='run'?'Pause':m==='pause'?'Resume':'Breathe again');
   var wide=(m==='idle'||m==='done');
   var vk=wide+'|'+st.prg;
-  if(cache.wide!==vk){cache.wide=vk;el.main.classList.toggle('wide',wide);el.side.hidden=wide;el.seg.style.visibility=wide?'visible':'hidden';el.seg.hidden=st.prg!=='wh';el.modes.style.visibility=wide?'visible':'hidden';el.durs.style.visibility=wide?'visible':'hidden';el.durs.hidden=st.prg==='wh';$('pace').hidden=!(st.prg==='slow'||st.prg==='box');$('own').hidden=st.prg!=='own';$('own').style.visibility=wide?'visible':'hidden';$('pace').style.visibility=wide?'visible':'hidden';el.infoBtn.style.visibility=wide?'visible':'hidden';$('btn-ask').style.visibility=wide?'visible':'hidden'}
+  if(cache.wide!==vk){cache.wide=vk;el.main.classList.toggle('wide',wide);el.side.hidden=wide;el.seg.style.visibility=wide?'visible':'hidden';el.seg.hidden=st.prg!=='wh';el.modes.style.visibility=wide?'visible':'hidden';el.durs.style.visibility=wide?'visible':'hidden';el.durs.hidden=st.prg==='wh';$('pace').hidden=!(st.prg==='slow'||st.prg==='box');$('lab-pace').hidden=$('pace').hidden;$('lab-dur').hidden=st.prg==='wh';$('lab-seg').hidden=st.prg!=='wh';var lv=wide?'visible':'hidden';$('lab-pace').style.visibility=lv;$('lab-dur').style.visibility=lv;$('lab-seg').style.visibility=lv;$('own').hidden=st.prg!=='own';$('own').style.visibility=wide?'visible':'hidden';$('pace').style.visibility=wide?'visible':'hidden';el.infoBtn.style.visibility=wide?'visible':'hidden';$('btn-ask').style.visibility=wide?'visible':'hidden'}
   var gentle=st.prg!=='wh';
   if(cache.gentle!==gentle){cache.gentle=gentle;el.rounds.hidden=gentle;el.solo.hidden=!gentle;if(gentle){setText(el.soloT,'st',PROGS[st.prg].t);setText(el.soloS,'ss',totalLabel(PROGS[st.prg]))}}
   if(gentle){setText(el.soloT,'st',PROGS[st.prg].t);setText(el.soloS,'ss',totalLabel(PROGS[st.prg]))}
