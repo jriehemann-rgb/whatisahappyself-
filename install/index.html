@@ -81,7 +81,7 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--cream);outline-offs
     <article class="card app-card">
       <img src="../icon-512.png" alt="" width="76" height="76">
       <div class="t">
-        <h2>Atmung</h2>
+        <h2>Happy Breath</h2>
         <p>Geführte Atemübungen: Wim Hof, 4-6-Atmen und Seufzen.</p>
         <a class="btn" href="../">Öffnen</a>
       </div>
@@ -149,7 +149,7 @@ function copy(url){
 $('share').addEventListener('click',function(){
   var url=location.href.split('#')[0];
   if(navigator.share){
-    navigator.share({title:'Happy Apps',text:'Zwei kleine Apps für mehr Ruhe und Routine: Atmung und Happy Habits.',url:url}).catch(function(err){
+    navigator.share({title:'Happy Apps',text:'Zwei kleine Apps für mehr Ruhe und Routine: Happy Breath und Happy Habits.',url:url}).catch(function(err){
       if(!err||err.name!=='AbortError')copy(url);
     });
   }else copy(url);
