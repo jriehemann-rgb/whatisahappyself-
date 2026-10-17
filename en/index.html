@@ -89,6 +89,18 @@ body{
 .checkin div{display:flex;gap:6px}
 .checkin button{padding:9px 14px;border:1px solid var(--edge);border-radius:999px;background:transparent;color:var(--slate);font:500 14px/1.2 var(--f);cursor:pointer}
 .checkin button:active{background:var(--accent-soft)}
+.tabs{display:flex;gap:8px;overflow-x:auto;padding:2px 0 6px;margin:0 -2px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{flex:none;padding:9px 14px;border:1px solid var(--edge);border-radius:999px;background:transparent;color:var(--slate);font:500 14px/1.2 var(--f);cursor:pointer;white-space:nowrap}
+.tabs button[aria-selected="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--ink)}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tile{border:1px solid var(--edge);border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:4px}
+.tile b{font-size:28px;line-height:1.1;font-weight:600;letter-spacing:-.02em;color:var(--accent-text);font-variant-numeric:tabular-nums}
+.tile span{font-size:13px;color:var(--muted)}
+#st-chart svg{display:block;width:100%;height:auto}
+#st-chart text{font:500 10px var(--f);fill:var(--muted)}
+#st-chart text.v{fill:var(--ink)}
+#st-note{font-size:14px;color:var(--muted)}
 .streak{margin:4px auto 0;font-size:14px;color:var(--muted)}
 .streak b{font-size:34px;font-weight:600;color:#b85727;margin-right:0;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .hint{margin:0;font-size:13px;line-height:1.4;color:var(--muted)}
@@ -180,6 +192,7 @@ body{
     </div>
     <div class="rounds solo" id="solo" hidden><div class="round is-now"><div class="bar"><i></i></div><div class="lab"><b id="solo-t"></b><span id="solo-s"></span></div></div></div>
     <button id="btn-info" class="icon-btn" type="button" aria-label="About this exercise"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 7.8v.1"/></svg></button>
+    <button id="btn-stats" class="icon-btn" type="button" aria-label="Show statistics"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20v-7M12 20V5M19 20v-10"/></svg></button>
     <button id="btn-sound" class="icon-btn" type="button" aria-pressed="true" aria-label="Turn sound off">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><g class="waves"><path d="M16.5 9.2a4 4 0 0 1 0 5.6"/><path d="M19 6.7a7.5 7.5 0 0 1 0 10.6"/></g><g class="off"><path d="M16.5 9.5l4.5 5M21 9.5l-4.5 5"/></g></svg>
     </button>
@@ -230,6 +243,14 @@ body{
   <div class="remind"><span>Daily reminder</span><div><input type="time" id="rem-time" value="08:00" aria-label="Time"><button class="btn" id="btn-rem" type="button" style="min-height:40px;font-size:14px">Add to calendar</button></div></div>
   <div class="remind"><span>Progress</span><div><button class="btn" id="btn-exp" type="button" style="min-height:40px;font-size:14px">Back up</button><button class="btn" id="btn-imp" type="button" style="min-height:40px;font-size:14px">Restore</button><input type="file" id="file-imp" accept="application/json,.json" hidden></div></div>
   <button class="btn primary" id="pick-close" type="button">Done</button>
+</div></div>
+<div class="sheet" id="stats-sheet" role="dialog" aria-modal="true" aria-labelledby="st-h" hidden><div class="sheet-in">
+  <h2 id="st-h">Statistics</h2>
+  <div class="tabs" id="st-tabs" role="tablist"></div>
+  <div class="tiles" id="st-tiles"></div>
+  <h3>Last 14 days</h3><div id="st-chart"></div>
+  <p id="st-note"></p>
+  <button id="st-close" class="btn primary" type="button">Close</button>
 </div></div>
 <div class="sheet" id="info" role="dialog" aria-modal="true" aria-labelledby="info-h" hidden><div class="sheet-in">
   <h2 id="info-h"></h2><p id="info-w"></p>
@@ -409,6 +430,7 @@ function getLog(){try{var o=JSON.parse(load('wh-log','{}'));return o&&typeof o==
 function logSession(){
   var mins=0,i;for(i=0;i<st.phases.length;i++)mins+=st.phases[i].dur;mins=mins/60000;
   var l=getLog(),k=dayKey(new Date());l[k]=(l[k]||0)+mins;save('wh-log',JSON.stringify(l));cache.stats=null;
+  var pl=getPlog(),ks=Object.keys(pl).sort();while(ks.length>400)delete pl[ks.shift()];pl[k]=pl[k]||{};pl[k][st.prg]=(pl[k][st.prg]||0)+mins;save('wh-plog',JSON.stringify(pl));
 }
 function weekHtml(){
   var l=getLog(),d=new Date(),a=[],i,k,dn=['Su','Mo','Tu','We','Th','Fr','Sa'],key='';
@@ -433,6 +455,53 @@ function statsText(){
   mo.forEach(function(x){if(x==='calmer'||x==='clearer')b++});
   return m+(m===1?' minute':' minutes')+' in total'+(mo.length>=3?' · felt better after '+b+' of '+mo.length+' sessions':'');
 }
+
+/* ---------- Statistik ---------- */
+function getPlog(){try{var o=JSON.parse(load('wh-plog','{}'));return o&&typeof o==='object'?o:{}}catch(e){return {}}}
+function fmtMin(m){m=Math.round(m);if(m>=60){var h=Math.floor(m/60),r=m%60;return h+' h'+(r?' '+r+' min':'')}return m+' min'}
+function seriesFor(k){
+  if(k==='all')return getLog();
+  var p=getPlog(),o={},d;for(d in p)if(p[d]&&p[d][k]>0)o[d]=p[d][k];return o;
+}
+function dayNum(key){var a=key.split('-');return Math.round(Date.UTC(+a[0],+a[1]-1,+a[2])/86400000)}
+function statsFor(k){
+  var o=seriesFor(k),keys=Object.keys(o).filter(function(x){return o[x]>0}),tot=0,i,best=0,run=0,prev=null;
+  keys.forEach(function(x){tot+=o[x]});
+  var nums=keys.map(dayNum).sort(function(a,b){return a-b});
+  for(i=0;i<nums.length;i++){run=(prev!==null&&nums[i]===prev+1)?run+1:1;if(run>best)best=run;prev=nums[i]}
+  var cur=0,d=new Date();if(!o[dayKey(d)])d.setDate(d.getDate()-1);while(o[dayKey(d)]>0){cur++;d.setDate(d.getDate()-1)}
+  return {o:o,days:keys.length,tot:tot,best:best,cur:cur};
+}
+var stTab='all';
+function renderStats(){
+  var tabs=$('st-tabs');while(tabs.firstChild)tabs.removeChild(tabs.firstChild);
+  var list=[['all','All']].concat(Object.keys(PROGS).map(function(k){return [k,PROGS[k].name]}));
+  list.forEach(function(it){var b=document.createElement('button');b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',it[0]===stTab?'true':'false');b.textContent=it[1];
+    b.addEventListener('click',function(){stTab=it[0];renderStats()});tabs.appendChild(b)});
+  var S=statsFor(stTab),t=$('st-tiles');while(t.firstChild)t.removeChild(t.firstChild);
+  [[S.cur+(S.cur===1?' day':' days'),'Current streak'],[S.best+(S.best===1?' day':' days'),'Longest streak'],[String(S.days),'Days practiced'],[fmtMin(S.tot),'Total time']].forEach(function(x){
+    var d=document.createElement('div');d.className='tile';var b=document.createElement('b');b.textContent=x[0];var sp=document.createElement('span');sp.textContent=x[1];d.appendChild(b);d.appendChild(sp);t.appendChild(d)});
+  var dn=['Su','Mo','Tu','We','Th','Fr','Sa'],now=new Date(),bars=[],i,x,k,mx=5;
+  for(i=13;i>=0;i--){x=new Date(now.getFullYear(),now.getMonth(),now.getDate()-i);k=dayKey(x);var v=S.o[k]||0;if(v>mx)mx=v;bars.push({v:v,n:dn[x.getDay()],t:i===0})}
+  var W=336,H=130,top=16,bot=22,bw=16,pitch=24,x0=(W-14*pitch+(pitch-bw))/2,h=H-top-bot,svg='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Minutes per day, last 14 days"><line x1="0" y1="'+(H-bot)+'" x2="'+W+'" y2="'+(H-bot)+'" stroke="#dcc6a3"/>';
+  bars.forEach(function(b,j){
+    var bh=b.v>0?Math.max(3,Math.round(h*b.v/mx)):0,bx=x0+j*pitch;
+    if(bh)svg+='<rect x="'+bx+'" y="'+(H-bot-bh)+'" width="'+bw+'" height="'+bh+'" rx="4" fill="'+(b.t?'#b85727':'#d9996f')+'"/><text class="v" x="'+(bx+bw/2)+'" y="'+(H-bot-bh-4)+'" text-anchor="middle">'+Math.round(b.v)+'</text>';
+    else svg+='<circle cx="'+(bx+bw/2)+'" cy="'+(H-bot-2)+'" r="1.8" fill="#cdb48d"/>';
+    svg+='<text x="'+(bx+bw/2)+'" y="'+(H-6)+'" text-anchor="middle"'+(b.t?' class="v"':'')+'>'+b.n+'</text>';
+  });
+  $('st-chart').innerHTML=svg+'</svg>';
+  var all=statsFor('all'),note='';
+  if(!all.days)note='No exercise completed yet. After your first one you will see your progress here.';
+  else if(stTab!=='all'&&all.tot-S.tot>0.5)note='Exercises from before this update are only included under “All”.';
+  else if(stTab==='all')note='Numbers: minutes per day.';
+  $('st-note').textContent=note;
+}
+function openStats(){renderStats();$('stats-sheet').hidden=false;$('st-close').focus()}
+function closeStats(){$('stats-sheet').hidden=true;$('btn-stats').focus()}
+$('btn-stats').addEventListener('click',openStats);
+$('st-close').addEventListener('click',closeStats);
+document.addEventListener('keydown',function(ev){if(ev.key==='Escape'&&!$('stats-sheet').hidden)closeStats()});
 function finish(){var tm=0;st.phases.forEach(function(x){tm+=x.dur});st.lastMin=Math.max(1,Math.round(tm/60000));st.moodDone=false;cache.ci=null;st.mode='done';st.idx=0;st.e=0;unwake();finishTune();logSession()}
 
 /* ---------- Steuerung ---------- */
@@ -641,7 +710,7 @@ $('file-imp').addEventListener('change',function(){
   var f=this.files&&this.files[0];if(!f||f.size>200000)return;
   var r=new FileReader();r.onload=function(){
     try{var o=JSON.parse(r.result);if(!o||o.app!=='happy-breath'||!o.data||typeof o.data!=='object')throw 0;
-      Object.keys(o.data).forEach(function(k){if(k.indexOf('wh-')===0&&typeof o.data[k]==='string'&&o.data[k].length<20000)save(k,o.data[k])});
+      Object.keys(o.data).forEach(function(k){if(k.indexOf('wh-')===0&&typeof o.data[k]==='string'&&o.data[k].length<60000)save(k,o.data[k])});
       toast('Progress restored.');setTimeout(function(){location.reload()},900)}
     catch(e){toast('This file does not belong to Happy Breath.')}
   };r.readAsText(f);this.value='';
@@ -756,7 +825,7 @@ function render(){
   setText(el.main,'main',m==='idle'?(st.prg==='wh'?'Start breathing':'Start exercise'):m==='run'?'Pause':m==='pause'?'Resume':'Breathe again');
   var wide=(m==='idle'||m==='done');
   var vk=wide+'|'+st.prg;
-  if(cache.wide!==vk){cache.wide=vk;el.main.classList.toggle('wide',wide);el.side.hidden=wide;el.seg.style.visibility=wide?'visible':'hidden';el.seg.hidden=st.prg!=='wh';el.modes.style.visibility=wide?'visible':'hidden';el.durs.style.visibility=wide?'visible':'hidden';el.durs.hidden=st.prg==='wh';$('pace').hidden=!(st.prg==='slow'||st.prg==='box');$('lab-pace').hidden=$('pace').hidden;$('lab-dur').hidden=st.prg==='wh';$('lab-seg').hidden=st.prg!=='wh';var lv=wide?'visible':'hidden';$('lab-pace').style.visibility=lv;$('lab-dur').style.visibility=lv;$('lab-seg').style.visibility=lv;$('own').hidden=st.prg!=='own';$('own').style.visibility=wide?'visible':'hidden';$('pace').style.visibility=wide?'visible':'hidden';el.infoBtn.style.visibility=wide?'visible':'hidden';$('btn-ask').style.visibility=wide?'visible':'hidden'}
+  if(cache.wide!==vk){cache.wide=vk;el.main.classList.toggle('wide',wide);el.side.hidden=wide;el.seg.style.visibility=wide?'visible':'hidden';el.seg.hidden=st.prg!=='wh';el.modes.style.visibility=wide?'visible':'hidden';el.durs.style.visibility=wide?'visible':'hidden';el.durs.hidden=st.prg==='wh';$('pace').hidden=!(st.prg==='slow'||st.prg==='box');$('lab-pace').hidden=$('pace').hidden;$('lab-dur').hidden=st.prg==='wh';$('lab-seg').hidden=st.prg!=='wh';var lv=wide?'visible':'hidden';$('lab-pace').style.visibility=lv;$('lab-dur').style.visibility=lv;$('lab-seg').style.visibility=lv;$('own').hidden=st.prg!=='own';$('own').style.visibility=wide?'visible':'hidden';$('pace').style.visibility=wide?'visible':'hidden';el.infoBtn.style.visibility=wide?'visible':'hidden';$('btn-stats').style.visibility=wide?'visible':'hidden';$('btn-ask').style.visibility=wide?'visible':'hidden'}
   var gentle=st.prg!=='wh';
   if(cache.gentle!==gentle){cache.gentle=gentle;el.rounds.hidden=gentle;el.solo.hidden=!gentle;if(gentle){setText(el.soloT,'st',PROGS[st.prg].t);setText(el.soloS,'ss',totalLabel(PROGS[st.prg]))}}
   if(gentle){setText(el.soloT,'st',PROGS[st.prg].t);setText(el.soloS,'ss',totalLabel(PROGS[st.prg]))}
