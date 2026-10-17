@@ -107,7 +107,7 @@ body{
 .icon-btn[aria-pressed="false"] .off{display:inline}
 .icon-btn[aria-pressed="false"]{color:var(--muted)}
 
-.stage{flex:1 1 0;min-height:240px;display:grid;place-items:center}
+.stage{flex:1 1 0;min-height:140px;display:grid;place-items:center}
 .orb{position:relative}
 .orb canvas{display:block}
 .core{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
@@ -127,6 +127,15 @@ body{
 .btn.primary.quiet{background:transparent;border-color:var(--slate);color:var(--ink);font-weight:500}
 .btn.wide{grid-column:1/-1}
 .btn:focus-visible,.icon-btn:focus-visible,.seg button:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+@media (max-height:700px){
+  body{padding-block:4px 10px}
+  .purpose{min-height:0;font-size:14px;margin:0 auto 2px}
+  .week{display:none}
+  .streak b{font-size:26px}
+  .checkin{margin:2px auto}
+  .controls{margin-top:8px}
+  .linkbtn{min-height:30px;margin-top:2px}
+}
 @media (prefers-reduced-motion:reduce){.btn{transition:none}.btn:active{transform:none}}
 
 .brand{margin-top:18px;padding-top:12px;border-top:1px solid var(--accent);text-align:center;font:700 12px/1 var(--f);letter-spacing:.16em;text-transform:uppercase;color:var(--ink)}
@@ -136,9 +145,9 @@ body{
 <div class="app">
   <header class="top">
     <div class="rounds" id="rounds">
-      <div class="round" aria-label="Runde 1"><div class="bar"><i></i></div><div class="lab"><b>30 Sekunden</b><span>+ 15 Sekunden</span></div></div>
-      <div class="round" aria-label="Runde 2"><div class="bar"><i></i></div><div class="lab"><b>1 Minute</b><span>+ 15 Sekunden</span></div></div>
-      <div class="round" aria-label="Runde 3"><div class="bar"><i></i></div><div class="lab"><b>1:30 Minuten</b><span>+ 15 Sekunden</span></div></div>
+      <div class="round" aria-label="Runde 1"><div class="bar"><i></i></div><div class="lab"><b>30 Sekunden</b><span>+ 15 Sek.</span></div></div>
+      <div class="round" aria-label="Runde 2"><div class="bar"><i></i></div><div class="lab"><b>1 Minute</b><span>+ 15 Sek.</span></div></div>
+      <div class="round" aria-label="Runde 3"><div class="bar"><i></i></div><div class="lab"><b>1:30 Minuten</b><span>+ 15 Sek.</span></div></div>
     </div>
     <div class="rounds solo" id="solo" hidden><div class="round is-now"><div class="bar"><i></i></div><div class="lab"><b id="solo-t"></b><span id="solo-s"></span></div></div></div>
     <button id="btn-info" class="icon-btn" type="button" aria-label="Info zur Übung"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 7.8v.1"/></svg></button>
@@ -696,7 +705,7 @@ var size=360,dpr=1;
 function resize(){
   var rc=el.stage.getBoundingClientRect();
   var s=Math.floor(Math.min(rc.width,rc.height,460));
-  if(s<200)s=200;
+  if(s<140)s=140;
   dpr=Math.min(window.devicePixelRatio||1,3);
   if(s===size&&el.cv.width===Math.round(s*dpr))return;
   size=s;
