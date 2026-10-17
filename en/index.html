@@ -46,6 +46,10 @@ body.focus{--bg:#18120d;--ink:#f1e0c6;--slate:#cbb89a;--muted:#a69580;--line:#3b
 body #btn-ask,body #modes,body .rowlab,body #durs,body #seg,body #own,body #pace,body .brand,body #btn-info,body #btn-stats{transition:opacity .45s ease,visibility 0s linear 0s}
 body.focus #btn-ask,body.focus #modes,body.focus .rowlab,body.focus #durs,body.focus #seg,body.focus #own,body.focus #pace,body.focus .brand,body.focus #btn-info,body.focus #btn-stats{opacity:0;pointer-events:none;transition:opacity .45s ease,visibility 0s linear .45s}
 body.focus2 #btn-ask,body.focus2 #modes,body.focus2 .rowlab,body.focus2 #durs,body.focus2 #seg,body.focus2 #own,body.focus2 #pace,body.focus2 .brand,body.focus2 #btn-info,body.focus2 #btn-stats{display:none!important}
+body.sleep{--bg:#0b0806;--ink:#bba88e;--slate:#9d8d77;--muted:#7d6f5d;--line:#241b14;--edge:#33281f;--accent-text:#c47a4a}
+body.sleep .orb{opacity:.6}
+body.sleep .btn.primary{background:#4a2813;border-color:#4a2813;color:#cdb99d}
+html:has(body.sleep){background:#0b0806}
 body.focus .stage{flex:3 1 0}
 body.focus .logo{opacity:.0;pointer-events:none;transition:opacity .6s}
 body.focus .btn.primary:not(.quiet){color:#fff8ee}
@@ -250,6 +254,7 @@ body{
 <div class="sheet" id="pick" role="dialog" aria-modal="true" aria-labelledby="pick-h" hidden><div class="sheet-in">
   <h2 id="pick-h">Choose exercise</h2><div class="ask-grid" id="pick-grid"></div>
   <div class="toneRow"><span>Sound style</span><button class="btn" id="btn-tone" type="button" style="min-height:40px;font-size:14px"></button></div>
+  <div class="toneRow"><span>Sleep mode</span><button class="btn" id="btn-sleep" type="button" style="min-height:40px;font-size:14px"></button></div>
   <div class="toneRow" id="row-vib"><span>Vibrate on phase change</span><button class="btn" id="btn-vib" type="button" style="min-height:40px;font-size:14px"></button></div>
   <p class="hint">No sound? On iPhone, check the silent switch and turn the volume up.</p>
   <div class="remind"><span>Daily reminder</span><div><input type="time" id="rem-time" value="08:00" aria-label="Time"><button class="btn" id="btn-rem" type="button" style="min-height:40px;font-size:14px">Calendar</button></div></div>
@@ -342,7 +347,7 @@ var el={stage:$('stage'),orb:$('orb'),cv:$('cv'),word:$('word'),ttl:$('ttl'),
 var roundEls=[].slice.call(document.querySelectorAll('.round'));
 var ctx=el.cv.getContext('2d');
 
-var st={tone:load('wh-tone','glide'),prg:load('wh-prg','wh'),dur:+load('wh-dur','3'),mdur:+load('wh-mdur','10'),mode:'idle',tempo:load('wh-tempo','normal'),pace:load('wh-pace','m'),vib:load('wh-vib','on')!=='off',sound:load('wh-sound','on')!=='off',
+var st={tone:load('wh-tone','glide'),prg:load('wh-prg','wh'),dur:+load('wh-dur','3'),mdur:+load('wh-mdur','10'),mode:'idle',tempo:load('wh-tempo','normal'),pace:load('wh-pace','m'),vib:load('wh-vib','on')!=='off',sleep:load('wh-sleep','off')==='on',sleepRun:false,sound:load('wh-sound','on')!=='off',
   phases:[],idx:0,e:0,bk:-1,pc:-1,hm:0,early:null,prog:0,sideAct:'stop'};
 if(!TEMPOS[st.tempo])st.tempo='normal';
 if(!PROGS[st.prg])st.prg='wh';
@@ -411,7 +416,7 @@ function buzz(ms){if(st.vib&&st.sound!==null&&navigator.vibrate){try{navigator.v
 function bell(f,len){tone(f,len||1.8,{bell:true,gain:0.1});tone(f*2,(len||1.8)*0.6,{bell:true,gain:0.025})}
 function tick(){tone(660,0.14,{bell:true,gain:0.06})}
 function chime(){bell(523,1.6);tone(659,1.6,{bell:true,gain:0.09,delay:0.22});tone(784,1.8,{bell:true,gain:0.09,delay:0.44})}
-function finishTune(){[392,494,587,784].forEach(function(f,i){tone(f,2.2,{bell:true,gain:0.09,delay:i*0.3})})}
+function finishTune(){if(st.sleepRun)return;[392,494,587,784].forEach(function(f,i){tone(f,2.2,{bell:true,gain:0.09,delay:i*0.3})})}
 
 /* ---------- Phasen ---------- */
 function phaseStart(ph){
@@ -424,7 +429,7 @@ function phaseStart(ph){
   else if(ph.t==='recOut')tone(330,ph.dur/1000,{to:190,gain:0.07});
 }
 function phaseEnd(ph,natural){
-  if((ph.t==='cyc'||ph.t==='med')&&natural)chime();
+  if((ph.t==='cyc'||ph.t==='med')&&natural&&!st.sleepRun)chime();
   if(ph.t==='hold'){st.early=null;if(natural)chime()}
   else if(ph.t==='recHold')bell(523,1.4);
 }
@@ -528,6 +533,7 @@ function start(){
   if(st.sound&&load('wh-hint','')!=='1'){save('wh-hint','1');toast('No sound? On iPhone, check the silent switch and turn the volume up.')}
   initAudio();
   if(ac&&ac.state==='suspended')ac.resume();
+  st.sleepRun=!!(st.sleep&&st.prg!=='wh');if(master&&ac)master.gain.value=0.9;
   build();st.mode='run';st.idx=0;st.e=0;st.early=null;st.prog=0;
   phaseStart(st.phases[0]);wake();
 }
@@ -725,6 +731,7 @@ function syncModes(){
   var l=$('pick-l');l.textContent='';l.insertAdjacentHTML('beforeend',icon(PROGS[st.prg].ic)+' ');
   var sp=document.createElement('span');sp.textContent=' '+PROGS[st.prg].name;l.appendChild(sp);l.style.display='inline-flex';l.style.alignItems='center';l.style.gap='8px';
 }
+function sleepLabel(){$('btn-sleep').textContent=st.sleep?'On':'Off'}
 function vibLabel(){$('btn-vib').textContent=st.vib?'On':'Off'}
 function toneLabel(){$('btn-tone').textContent=st.tone==='bells'?'Bells only':'Gliding'}
 function openPick(){
@@ -737,10 +744,11 @@ function openPick(){
     b.addEventListener('click',function(){st.prg=key;save('wh-prg',key);st.mode='idle';syncModes();cache.gentle=null;buildDurs();el.pick.hidden=true;el.pickBtn.focus()});
     g.appendChild(b);
   });
-  toneLabel();vibLabel();$('row-vib').hidden=!navigator.vibrate;el.pick.hidden=false;$('pick-close').focus();
+  toneLabel();vibLabel();sleepLabel();$('row-vib').hidden=!navigator.vibrate;el.pick.hidden=false;$('pick-close').focus();
 }
 el.pickBtn.addEventListener('click',openPick);
 $('pick-close').addEventListener('click',function(){el.pick.hidden=true;el.pickBtn.focus()});
+$('btn-sleep').addEventListener('click',function(){st.sleep=!st.sleep;save('wh-sleep',st.sleep?'on':'off');sleepLabel();toast(st.sleep?'Sleep mode: dark screen, sounds fade out, no closing chime.':'Sleep mode off.')});
 $('btn-vib').addEventListener('click',function(){st.vib=!st.vib;save('wh-vib',st.vib?'on':'off');vibLabel();if(st.vib)buzz(40)});
 $('btn-tone').addEventListener('click',function(){st.tone=st.tone==='bells'?'glide':'bells';save('wh-tone',st.tone);toneLabel()});
 $('btn-exp').addEventListener('click',function(){
@@ -881,7 +889,9 @@ function render(){
   var gentle=st.prg!=='wh';
   if(cache.gentle!==gentle){cache.gentle=gentle;el.rounds.hidden=gentle;el.solo.hidden=!gentle;if(gentle){setText(el.soloT,'st',PROGS[st.prg].t);setText(el.soloS,'ss',totalLabel(PROGS[st.prg]))}}
   if(gentle){setText(el.soloT,'st',PROGS[st.prg].t);setText(el.soloS,'ss',totalLabel(PROGS[st.prg]))}
-  var foc=(m==='run'||m==='pause');
+  var foc=(m==='run'||m==='pause'||(m==='done'&&st.sleepRun));
+  var slp=foc&&st.sleepRun;if(cache.slp!==slp){cache.slp=slp;document.body.classList.toggle('sleep',slp)}
+  if(slp&&master&&ac&&m==='run'){try{master.gain.setTargetAtTime(0.9*(1-0.85*Math.min(1,st.prog||0)),ac.currentTime,0.6)}catch(e){}}
   if(cache.foc!==foc){cache.foc=foc;focusSwitch(foc);SL=foc?'203,184,154':'74,99,132';var tc=document.querySelector('meta[name=theme-color]');if(tc)tc.setAttribute('content',foc?'#18120d':'#f1e0c6')}
   var quiet=(m==='run');
   if(cache.quiet!==quiet){cache.quiet=quiet;el.main.classList.toggle('quiet',quiet)}
@@ -1000,6 +1010,13 @@ syncSound();syncSeg();syncModes();syncDurs();
   applyPace();buildPace();
   if(hsh&&PROGS[hsh]){st.prg=hsh;save('wh-prg',hsh);syncModes();buildDurs();cache.gentle=null}
   else openAsk();
+  var qs=(location.search.match(/[?&]start=([a-zA-Z0-9-]+)/)||[])[1];
+  if(qs){
+    var QA={runterkommen:'down',ruhe:'down',down:'down',fokus:'focus',focus:'focus',wach:'wake',energie:'wake',wake:'wake',innehalten:'still',still:'still',beobachten:'still',abend:'eve',schlaf:'eve',eve:'eve'};
+    var ak=QA[qs.toLowerCase()],ae=null,ai;
+    if(ak)for(ai=0;ai<ASK.length;ai++)if(ASK[ai].k===ak)ae=ASK[ai];
+    if(ae)openRec(ae);
+  }
 })();
 if(window.ResizeObserver){new ResizeObserver(resize).observe(el.stage)}
 window.addEventListener('resize',resize);
