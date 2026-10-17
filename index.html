@@ -67,10 +67,6 @@ body{
 .ask-grid button{display:flex;align-items:center;gap:14px}
 .ask-grid .tx{display:block}
 .toneRow{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:15px;color:var(--muted);padding-top:6px}
-@media (prefers-color-scheme:dark){
-  :root{--bg:#1d1510;--ink:#f4e6d0;--slate:#9bb0cc;--muted:#b9a58c;--line:#4a3a2c;--edge:#5b4938;--accent:#c8652f;--accent-soft:rgba(200,101,47,.2);color-scheme:dark}
-  .btn.primary,.btn.primary.quiet{color:#fff8ee}
-}
 .ask-grid{display:grid;gap:10px}
 .ask-grid button{min-height:58px;padding:0 18px;border-radius:18px;border:1px solid var(--edge);background:transparent;color:var(--ink);font:500 18px/1.2 var(--f);text-align:left;cursor:pointer}
 .ask-grid button.last{border-color:var(--accent);background:var(--accent-soft)}
@@ -215,7 +211,6 @@ function nCyc(P){return Math.max(1,Math.round(st.dur*60000/P.cyc))}
 function totalLabel(P){var t=st.prg==='med'?st.mdur*60:nCyc(P)*P.cyc/1000;return fmt(t)+' Minuten'}
 var TAU=Math.PI*2;
 var SL='74,99,132',dark=false;
-try{var mq=window.matchMedia('(prefers-color-scheme: dark)');dark=mq.matches;SL=dark?'155,176,204':'74,99,132';if(mq.addEventListener)mq.addEventListener('change',function(e){dark=e.matches;SL=dark?'155,176,204':'74,99,132'})}catch(e){}
 var ICONS={
  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6L17 7M7 17l-1.4 1.4"/>',
  moon:'<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
