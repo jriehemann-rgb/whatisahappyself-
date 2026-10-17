@@ -63,7 +63,7 @@ body{
 .sheet .ref{font-size:13px;line-height:1.45;color:var(--muted)}
 #ask-1,#ask-2{display:flex;flex-direction:column;gap:14px}
 .week{display:flex;justify-content:center;gap:10px;margin-top:8px;min-height:34px}
-.week span{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;color:var(--muted)}
+.week span{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;color:var(--muted)}
 .week i{width:14px;height:14px;border-radius:50%;background:var(--line)}
 .week i.on{background:var(--accent)}
 .week span.today{color:var(--ink);font-weight:600}
@@ -76,6 +76,8 @@ body{
 .own .oc button{width:32px;height:32px;border-radius:50%;border:1px solid var(--edge);background:transparent;color:var(--accent);font:600 18px/1 var(--f);cursor:pointer;padding:0}
 .own .oc button:active{background:var(--accent-soft)}
 .ask-grid button .rec{display:inline-block;margin-left:8px;padding:1px 8px;border-radius:999px;background:var(--accent);color:var(--accent-ink);font-size:11px;font-weight:600;letter-spacing:.02em;vertical-align:2px}
+.evid{display:block;margin:0 auto 4px;padding:5px 12px;border:1px solid var(--edge);border-radius:999px;background:transparent;color:var(--slate);font:500 13px/1.2 var(--f);cursor:pointer}
+.evid:active{background:var(--accent-soft)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .checkin{margin:6px auto 4px;display:flex;flex-direction:column;gap:8px;align-items:center;font-size:15px;color:var(--slate)}
 .checkin div{display:flex;gap:6px}
@@ -87,8 +89,8 @@ body{
 .remind{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:15px;color:var(--muted)}
 .remind div{display:flex;gap:8px;align-items:center}
 .remind input{font:500 15px var(--f);padding:7px 8px;border:1px solid var(--edge);border-radius:10px;background:transparent;color:var(--ink,#3a2418)}
-.toast{position:fixed;left:50%;bottom:128px;transform:translateX(-50%);max-width:min(340px,86vw);padding:10px 16px;border-radius:14px;background:#3a2418;color:#f1e0c6;font-size:14px;line-height:1.4;text-align:center;z-index:30;box-shadow:0 6px 24px rgba(58,36,24,.25)}
-.stats{min-height:1.2em;margin-top:2px;font-size:13px;color:var(--muted);text-align:center;letter-spacing:.02em}
+.toast{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);max-width:min(340px,86vw);padding:10px 16px;border-radius:14px;background:#3a2418;color:#f1e0c6;font-size:14px;line-height:1.4;text-align:center;z-index:30;box-shadow:0 6px 24px rgba(58,36,24,.25)}
+.stats{min-height:1.2em;margin-top:2px;font-size:14px;color:var(--muted);text-align:center;letter-spacing:.02em}
 .pickbtn{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;max-width:380px;margin:6px auto 0;min-height:48px;padding:0 18px;border:1px solid var(--edge);border-radius:999px;background:transparent;color:var(--ink);font:500 16px/1.2 var(--f);cursor:pointer}
 .pickbtn small{color:var(--muted);font-size:13px}
 .pickbtn:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
@@ -106,7 +108,7 @@ body{
 .round{min-width:0}
 .bar{height:4px;border-radius:2px;background:var(--line);overflow:hidden}
 .bar i{display:block;height:100%;width:0;background:var(--accent)}
-.lab{margin-top:8px;display:flex;flex-direction:column;font-size:12px;line-height:1.35;color:var(--muted)}
+.lab{margin-top:8px;display:flex;flex-direction:column;font-size:13px;line-height:1.35;color:var(--muted)}
 .lab b{font-weight:600}
 .round.is-now .lab b{color:var(--accent)}
 .round.is-done .lab b{color:var(--ink)}
@@ -148,7 +150,7 @@ body{
 }
 @media (prefers-reduced-motion:reduce){.btn{transition:none}.btn:active{transform:none}}
 
-.legal{margin-top:4px;font:500 11px/1.2 var(--f);letter-spacing:.02em;text-transform:none;color:var(--muted)}
+.legal{margin-top:4px;font:500 12px/1.2 var(--f);letter-spacing:.02em;text-transform:none;color:var(--muted)}
 .legal a{color:inherit}
 .brand{margin-top:18px;padding-top:12px;border-top:1px solid var(--accent);text-align:center;font:700 12px/1 var(--f);letter-spacing:.16em;text-transform:uppercase;color:var(--ink)}
 </style>
@@ -178,6 +180,7 @@ body{
   <section class="copy">
     <h1 id="ttl" aria-live="polite"></h1>
     <p class="purpose" id="purpose"></p>
+    <button class="evid" id="evid" type="button" hidden></button>
     <div class="checkin" id="checkin" hidden><span>Wie fühlst du dich jetzt?</span><div><button type="button" data-m="calmer">Ruhiger</button><button type="button" data-m="clearer">Klarer</button><button type="button" data-m="same">Wie vorher</button></div></div>
     <div class="streak" id="streak" hidden></div>
     <div class="stats" id="stats"></div>
@@ -227,7 +230,7 @@ body{
 (function(){
 'use strict';
 var HOLDS=[30,60,90];            // Haltezeit nach der Ausatmung je Runde, in Sekunden
-var BREATHS=30, PREP=3, REC_IN=3.2, REC_HOLD=15, REC_OUT=3.2, INHALE=0.52;
+var BREATHS=30, PREP=5, REC_IN=3.2, REC_HOLD=15, REC_OUT=3.2, INHALE=0.52;
 var TEMPOS={calm:{name:'Ruhig',cycle:4.0},normal:{name:'Normal',cycle:3.2},fast:{name:'Zügig',cycle:2.6}};
 var PROGS={
   wh:{name:'Energie-Atmung',ic:'sun',d:'Tiefe, schnelle Atmung mit Atemhalt'},
@@ -419,7 +422,7 @@ function statsText(){
   mo.forEach(function(x){if(x==='calmer'||x==='clearer')b++});
   return m+(m===1?' Minute':' Minuten')+' insgesamt'+(mo.length>=3?' · '+b+' von '+mo.length+' Mal besser danach':'');
 }
-function finish(){st.moodDone=false;cache.ci=null;st.mode='done';st.idx=0;st.e=0;unwake();finishTune();logSession()}
+function finish(){var tm=0;st.phases.forEach(function(x){tm+=x.dur});st.lastMin=Math.max(1,Math.round(tm/60000));st.moodDone=false;cache.ci=null;st.mode='done';st.idx=0;st.e=0;unwake();finishTune();logSession()}
 
 /* ---------- Steuerung ---------- */
 var wl=null;
@@ -549,6 +552,15 @@ function buildPace(){buildOwn();
   });
 }
 function recKey(){var h=new Date().getHours();return h>=5&&h<10?'wake':h>=10&&h<17?'focus':h>=17&&h<21?'down':'eve'}
+var HOWTO={
+  wh:'Bequem sitzen oder liegen. Tief ein, locker aus. Nie im Wasser.',
+  slow:'Bequem sitzen, Schultern locker. Durch die Nase ein, langsam aus.',
+  sigh:'Zweimal kurz durch die Nase ein, dann lang durch den Mund aus.',
+  med:'Bequem sitzen. Atme ganz normal und beobachte nur.',
+  own:'Bequem sitzen. Atme durch die Nase, ohne Anstrengung.',
+  box:'Bequem sitzen, Schultern locker. Durch die Nase atmen, ohne Druck.'
+};
+var EVID={wh:'klein, vorläufig',slow:'Übersichtsarbeit, uneinheitlich',sigh:'eine Studie, 108 Personen',med:'viele Studien zu Meditation',own:'keine eigene Studie',box:'kaum belegt, Erfahrungswert'};
 var askSel=null;
 function openAsk(){
   var last=load('wh-ask',''),g=$('ask-grid');
@@ -573,6 +585,7 @@ function applyAsk(){
   st.mode='idle';syncModes();cache.gentle=null;buildDurs();el.ask.hidden=true;
 }
 $('btn-ask').addEventListener('click',openAsk);
+$('evid').addEventListener('click',function(){el.infoBtn.click()});
 [].forEach.call($('checkin').querySelectorAll('button'),function(b){b.addEventListener('click',function(){
   var mo=getMood();mo.push(b.getAttribute('data-m'));save('wh-mood',JSON.stringify(mo.slice(-60)));st.moodDone=true;cache.stats=null;toast('Danke, notiert.')})});
 $('ask-skip').addEventListener('click',function(){el.ask.hidden=true});
@@ -644,7 +657,7 @@ function step(dt,now){
   vs.filled=0;vs.curF=-1;vs.bx=-1;
   if(m==='idle'||m==='done'||!ph){
     pT=reduce?0.4:0.4+0.14*Math.sin(now/1000*TAU/7);gT=0.5;
-    if(m==='done'){vs.filled=st.prg==='wh'?BREATHS:0;vs.word='Fertig';vs.title='Geschafft'}
+    if(m==='done'){vs.filled=st.prg==='wh'?BREATHS:0;vs.word='Fertig';vs.title='Geschafft · '+(st.lastMin||1)+(st.lastMin===1?' Minute':' Minuten')}
     else{vs.word='';vs.title=''}
   }else{
     e=st.e;d=ph.dur;
@@ -722,8 +735,10 @@ function render(){
   setText(el.word,'word',vs.word);
   setText(el.ttl,'ttl',title);
   setText($('sr'),'sr',(m==='run'&&vs.word&&isNaN(vs.word)&&vs.word.indexOf(':')<0)?vs.word:'');
-  var pu=PURPOSE[st.prg],pk=(m!=='done'&&pu)?st.prg:'';
-  if(cache.pu!==pk){cache.pu=pk;var pe=$('purpose');pe.textContent='';if(pk){var pb=document.createElement('b');pb.textContent=pu[0];pe.appendChild(pb);pe.appendChild(document.createTextNode(pu[1]))}}
+  var pu=PURPOSE[st.prg],inPrep=(m==='run'&&ph&&ph.t==='prep'),pk=(m!=='done'&&pu)?st.prg+(inPrep?'|p':''):'';
+  if(cache.pu!==pk){cache.pu=pk;var pe=$('purpose');pe.textContent='';if(pk){var pb=document.createElement('b');pb.textContent=inPrep?'So geht\u2019s':pu[0];pe.appendChild(pb);pe.appendChild(document.createTextNode(inPrep?HOWTO[st.prg]:pu[1]))}}
+  var evk=(m==='idle')?st.prg:'';
+  if(cache.ev!==evk){cache.ev=evk;var ev=$('evid');ev.hidden=!evk;if(evk)ev.textContent='Studienlage: '+EVID[evk]+' \u203A'}
 
   var ciShow=(m==='done'&&!st.moodDone);
   if(cache.ci!==ciShow){cache.ci=ciShow;$('checkin').hidden=!ciShow}
