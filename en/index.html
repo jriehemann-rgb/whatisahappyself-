@@ -145,7 +145,7 @@ body{
 .icon-btn[aria-pressed="false"] .off{display:inline}
 .icon-btn[aria-pressed="false"]{color:var(--muted)}
 
-.stage{flex:1.5 1 0;min-height:140px;display:grid;place-items:center}
+.stage{flex:1.5 1 0;min-height:98px;display:grid;place-items:center}
 .orb{position:relative}
 .orb canvas{display:block}
 .core{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
@@ -776,7 +776,7 @@ function step(dt,now){
   vs.filled=0;vs.curF=-1;vs.bx=-1;
   if(m==='idle'||m==='done'||!ph){
     pT=reduce?0.4:0.4+0.14*Math.sin(now/1000*TAU/7);gT=0.5;
-    if(m==='done'){vs.filled=st.prg==='wh'?BREATHS:0;vs.word='Done';vs.title='Well done · '+(st.lastMin||1)+(st.lastMin===1?' minute':' minutes')}
+    if(m==='done'){pT=0.7;vs.filled=st.prg==='wh'?BREATHS:0;vs.word='\u2713';vs.title='Well done · '+(st.lastMin||1)+(st.lastMin===1?' minute':' minutes')}
     else{vs.word='';vs.title=''}
   }else{
     e=st.e;d=ph.dur;
@@ -860,7 +860,7 @@ function render(){
   var ciShow=(m==='done'&&!st.moodDone);
   if(cache.ci!==ciShow){cache.ci=ciShow;$('checkin').hidden=!ciShow}
   var sn=(m==='idle'||m==='done')?days7():0,skk=sn+'|'+st.moodDone;
-  if(cache.sk!==skk){cache.sk=skk;var se=$('streak');se.textContent='';se.hidden=sn<1;if(sn>=1){var sb=document.createElement('b');sb.textContent=sn;se.appendChild(sb);se.appendChild(document.createTextNode(' of 4 days in the last 7'+(sn>=4?' \u00b7 goal reached':'')))}}
+  if(cache.sk!==skk){cache.sk=skk;var se=$('streak');se.textContent='';se.hidden=sn<1;if(sn>=1){var sb=document.createElement('b');sb.textContent=sn;se.appendChild(sb);se.appendChild(document.createTextNode(sn>=4?' days in the last 7 \u00b7 goal reached':' of 4 days in the last 7'))}}
   var nx=(m==='done'&&st.moodDone&&NEXT[st.prg])?st.prg:'';
   if(cache.nx!==nx){cache.nx=nx;var nb=$('nextbtn');nb.hidden=!nx;if(nx)nb.textContent='Next up: '+askFor(NEXT[nx]).l+' \u203A'}
   var pi=(m==='idle')?pathInfo():null,pik=pi?pi.t+'|'+(pi.plain?1:0):'';
