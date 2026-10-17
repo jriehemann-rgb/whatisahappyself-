@@ -101,6 +101,14 @@ body{
 #st-chart text{font:500 10px var(--f);fill:var(--muted)}
 #st-chart text.v{fill:var(--ink)}
 #st-note{font-size:14px;color:var(--muted)}
+.pathrow{display:flex;justify-content:center;align-items:center;gap:2px;margin:4px auto}
+.pathbtn,.nextbtn{padding:6px 12px;border:1px solid var(--edge);border-radius:999px;background:transparent;color:var(--slate);font:500 13px/1.2 var(--f);cursor:pointer}
+.pathbtn:active,.nextbtn:active{background:var(--accent-soft)}
+.pathbtn.plain{border-color:transparent;color:var(--muted);cursor:default}
+.nextbtn{display:block;margin:6px auto 2px}
+.pathx{width:30px;height:30px;border:0;background:transparent;color:var(--muted);font:400 20px/1 var(--f);cursor:pointer}
+.mscard{border:1px solid var(--edge);border-radius:16px;padding:12px 14px;font-size:15px;line-height:1.4;color:var(--slate);display:flex;flex-direction:column;gap:6px}
+.mscard a{color:var(--accent-text);font-weight:600;text-underline-offset:3px}
 .streak{margin:4px auto 0;font-size:14px;color:var(--muted)}
 .streak b{font-size:34px;font-weight:600;color:#b85727;margin-right:0;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .hint{margin:0;font-size:13px;line-height:1.4;color:var(--muted)}
@@ -169,6 +177,7 @@ body{
   body{padding-block:4px 10px}
   .purpose{min-height:0;font-size:14px;margin:0 auto 2px}
   .week{display:none}
+  .pathrow,.nextbtn{display:none!important}
   .streak b{font-size:26px}
   .checkin{margin:2px auto}
   .controls{margin-top:8px}
@@ -209,6 +218,8 @@ body{
     <h1 id="ttl" aria-live="polite"></h1>
     <p class="purpose" id="purpose"></p>
     <div class="checkin" id="checkin" hidden><span>How do you feel now?</span><div><button type="button" data-m="calmer">Calmer</button><button type="button" data-m="clearer">Clearer</button><button type="button" data-m="same">Same as before</button></div></div>
+    <div class="pathrow" id="pathrow" hidden><button class="pathbtn" id="path-btn" type="button"></button><button class="pathx" id="path-x" type="button" aria-label="Hide intro">&times;</button></div>
+    <button class="nextbtn" id="nextbtn" type="button" hidden></button>
     <div class="streak" id="streak" hidden></div>
     <div class="stats" id="stats"></div>
     <div class="week" id="week" aria-hidden="true"></div>
@@ -250,6 +261,7 @@ body{
   <div class="tiles" id="st-tiles"></div>
   <h3>Last 14 days</h3><div id="st-chart"></div>
   <p id="st-note"></p>
+  <div class="mscard"><span>More than breathing? Master Your System guides you for 90 days.</span><a href="../coaching/en/start/">Learn more &rsaquo;</a></div>
   <button id="st-close" class="btn primary" type="button">Close</button>
 </div></div>
 <div class="sheet" id="info" role="dialog" aria-modal="true" aria-labelledby="info-h" hidden><div class="sheet-in">
@@ -445,6 +457,7 @@ function renderWeek(show){
   w.a.forEach(function(x){var sp=document.createElement('span');if(x.t)sp.className='today';var i=document.createElement('i');if(x.on)i.className='on';sp.appendChild(i);sp.appendChild(document.createTextNode(x.n));el.week.appendChild(sp)});
 }
 function getMood(){try{var o=JSON.parse(load('wh-mood','[]'));return Array.isArray(o)?o:[]}catch(e){return []}}
+function days7(){var l=getLog(),d=new Date(),n=0,i;for(i=0;i<7;i++){if(l[dayKey(new Date(d.getFullYear(),d.getMonth(),d.getDate()-i))]>0)n++}return n}
 function streakN(){var l=getLog(),n=0,d=new Date();if(!l[dayKey(d)])d.setDate(d.getDate()-1);while(l[dayKey(d)]){n++;d.setDate(d.getDate()-1)}return n}
 st.moodDone=false;
 function statsText(){
@@ -502,7 +515,7 @@ function closeStats(){$('stats-sheet').hidden=true;$('btn-stats').focus()}
 $('btn-stats').addEventListener('click',openStats);
 $('st-close').addEventListener('click',closeStats);
 document.addEventListener('keydown',function(ev){if(ev.key==='Escape'&&!$('stats-sheet').hidden)closeStats()});
-function finish(){var tm=0;st.phases.forEach(function(x){tm+=x.dur});st.lastMin=Math.max(1,Math.round(tm/60000));st.moodDone=false;cache.ci=null;st.mode='done';st.idx=0;st.e=0;unwake();finishTune();logSession()}
+function finish(){var tm=0;st.phases.forEach(function(x){tm+=x.dur});st.lastMin=Math.max(1,Math.round(tm/60000));st.moodDone=false;cache.ci=null;st.mode='done';st.idx=0;st.e=0;unwake();finishTune();logSession();pathAdvance()}
 
 /* ---------- Steuerung ---------- */
 var wl=null;
@@ -640,6 +653,34 @@ var HOWTO={
   own:'Sit comfortably. Breathe through the nose, without effort.',
   box:'Sit comfortably, shoulders loose. Breathe through the nose, without strain.'
 };
+
+/* ---------- Einstieg & Vorschlag ---------- */
+var PATH=[{p:'sigh',d:3},{p:'box',d:3},{p:'slow',d:5},{p:'wh',d:3},{p:'med',d:5},{p:'sigh',d:3},{p:'box',d:5}];
+var NEXT={wh:'box',sigh:'box',box:'med',slow:'med'};
+function askFor(p,d){var i,a;for(i=0;i<ASK.length;i++)if(ASK[i].p===p){a={};for(var k in ASK[i])a[k]=ASK[i][k];if(d)a.d=d;return a}return ASK[0]}
+function getPath(){try{var o=JSON.parse(load('wh-path','{}'));return o&&typeof o==='object'?o:{}}catch(e){return {}}}
+function setPath(o){save('wh-path',JSON.stringify(o))}
+function pathInfo(){
+  var o=getPath();if(o.off||o.day>7)return null;
+  if(!o.started)return {t:'7-day intro \u203A'};
+  if(o.last===dayKey(new Date()))return {t:'7-day intro: day '+(o.day-1)+' of 7 done \u2713',plain:true};
+  var e=PATH[o.day-1];return {t:'7-day intro \u00b7 Day '+o.day+': '+askFor(e.p).l+' \u203A'};
+}
+function pathAdvance(){
+  var o=getPath();if(!o.started||o.off||o.day>7)return;
+  var td=dayKey(new Date());if(o.last===td)return;
+  if(PATH[o.day-1].p!==st.prg)return;
+  o.day++;o.last=td;setPath(o);cache.pi=null;
+  if(o.day>7)toast('Intro complete. Nice work sticking with it.');
+}
+function openRec(a){showRec(a);el.ask.hidden=false}
+$('path-btn').addEventListener('click',function(){
+  var o=getPath();if(o.last===dayKey(new Date())&&o.started)return;
+  if(!o.started){o={started:true,day:1,last:''};setPath(o)}
+  var e=PATH[o.day-1];openRec(askFor(e.p,e.d));
+});
+$('path-x').addEventListener('click',function(){var o=getPath();o.off=true;setPath(o);cache.pi=null;toast('Intro hidden.')});
+$('nextbtn').addEventListener('click',function(){var p=NEXT[st.prg];if(p)openRec(askFor(p,p==='med'?5:3))});
 var askSel=null;
 function openAsk(){
   var last=load('wh-ask',''),g=$('ask-grid');
@@ -818,8 +859,12 @@ function render(){
 
   var ciShow=(m==='done'&&!st.moodDone);
   if(cache.ci!==ciShow){cache.ci=ciShow;$('checkin').hidden=!ciShow}
-  var sn=(m==='idle'||m==='done')?streakN():0,skk=sn+'|'+st.moodDone;
-  if(cache.sk!==skk){cache.sk=skk;var se=$('streak');se.textContent='';se.hidden=sn<1;if(sn>=1){var sb=document.createElement('b');sb.textContent=sn;se.appendChild(sb);se.appendChild(document.createTextNode(sn===1?' day in a row':' days in a row'))}}
+  var sn=(m==='idle'||m==='done')?days7():0,skk=sn+'|'+st.moodDone;
+  if(cache.sk!==skk){cache.sk=skk;var se=$('streak');se.textContent='';se.hidden=sn<1;if(sn>=1){var sb=document.createElement('b');sb.textContent=sn;se.appendChild(sb);se.appendChild(document.createTextNode(' of 4 days in the last 7'+(sn>=4?' \u00b7 goal reached':'')))}}
+  var nx=(m==='done'&&st.moodDone&&NEXT[st.prg])?st.prg:'';
+  if(cache.nx!==nx){cache.nx=nx;var nb=$('nextbtn');nb.hidden=!nx;if(nx)nb.textContent='Next up: '+askFor(NEXT[nx]).l+' \u203A'}
+  var pi=(m==='idle')?pathInfo():null,pik=pi?pi.t+'|'+(pi.plain?1:0):'';
+  if(cache.pi!==pik){cache.pi=pik;var pr=$('pathrow');pr.hidden=!pi;if(pi){var pb2=$('path-btn');pb2.textContent=pi.t;pb2.className='pathbtn'+(pi.plain?' plain':'')}}
   setText(el.stats,'stats',(m==='idle'||m==='done')?statsText():'');
   renderWeek(m==='idle'||m==='done');
   setText(el.main,'main',m==='idle'?(st.prg==='wh'?'Start breathing':'Start exercise'):m==='run'?'Pause':m==='pause'?'Resume':'Breathe again');
