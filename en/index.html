@@ -69,7 +69,6 @@ body{
 .sheet h2{margin:0;font-weight:600;font-size:26px;line-height:1.2;color:var(--ink)}
 .sheet h3{margin:6px 0 0;font:600 12px/1.2 var(--f);letter-spacing:.14em;text-transform:uppercase;color:var(--accent-text)}
 .sheet p{margin:0;font-size:17px;line-height:1.5}
-.sheet .ref{font-size:13px;line-height:1.45;color:var(--muted)}
 #ask-1,#ask-2{display:flex;flex-direction:column;gap:14px}
 .week{display:flex;justify-content:center;gap:10px;margin-top:8px;min-height:34px}
 .week span{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;color:var(--muted)}
@@ -85,8 +84,6 @@ body{
 .own .oc button{width:32px;height:32px;border-radius:50%;border:1px solid var(--edge);background:transparent;color:var(--accent);font:600 18px/1 var(--f);cursor:pointer;padding:0}
 .own .oc button:active{background:var(--accent-soft)}
 .ask-grid button .rec{display:inline-block;margin-left:8px;padding:1px 8px;border-radius:999px;background:var(--accent);color:var(--accent-ink);font-size:11px;font-weight:600;letter-spacing:.02em;vertical-align:2px}
-.evid{display:block;margin:0 auto 4px;padding:5px 12px;border:1px solid var(--edge);border-radius:999px;background:transparent;color:var(--slate);font:500 13px/1.2 var(--f);cursor:pointer}
-.evid:active{background:var(--accent-soft)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .checkin{margin:6px auto 4px;display:flex;flex-direction:column;gap:8px;align-items:center;font-size:15px;color:var(--slate)}
 .checkin div{display:flex;gap:6px}
@@ -156,8 +153,7 @@ body{
   .brand{margin-top:8px;padding-top:8px}
   .purpose{margin-bottom:0}
   .logo{display:none!important}
-  .evid{display:none}
-  .legal{margin-top:5px}
+    .legal{margin-top:5px}
   body{padding-block:4px 10px}
   .purpose{min-height:0;font-size:14px;margin:0 auto 2px}
   .week{display:none}
@@ -199,7 +195,6 @@ body{
   <section class="copy">
     <h1 id="ttl" aria-live="polite"></h1>
     <p class="purpose" id="purpose"></p>
-    <button class="evid" id="evid" type="button" hidden></button>
     <div class="checkin" id="checkin" hidden><span>How do you feel now?</span><div><button type="button" data-m="calmer">Calmer</button><button type="button" data-m="clearer">Clearer</button><button type="button" data-m="same">Same as before</button></div></div>
     <div class="streak" id="streak" hidden></div>
     <div class="stats" id="stats"></div>
@@ -238,7 +233,7 @@ body{
 </div></div>
 <div class="sheet" id="info" role="dialog" aria-modal="true" aria-labelledby="info-h" hidden><div class="sheet-in">
   <h2 id="info-h"></h2><p id="info-w"></p>
-  <h3>Effect</h3><p id="info-e"></p><p class="ref" id="info-r"></p>
+  <h3>What for</h3><p id="info-e"></p>
   <p class="warn" id="info-n"></p>
   <button id="info-close" class="btn primary" type="button">Close</button>
 </div></div>
@@ -268,28 +263,22 @@ var BASE={slow:{cyc:10000,seg:[4000,6000]},box:{cyc:16000,seg:[4000,4000,4000,40
 function sec(ms){return String(ms/1000)}
 var INFO={
   wh:{w:'Three rounds of deep, fast breathing, then a breath hold and a short recovery breath.',
-    e:'In a small study of 24 healthy men, trained participants (breathing exercise, cold exposure, meditation) were able to raise their adrenaline voluntarily. During an artificially induced inflammatory response they showed fewer inflammatory messengers. The group was small, so a benefit in everyday life is not shown.',
-    r:'Kox, M. et al. (2014). Voluntary activation of the sympathetic nervous system and attenuation of the innate immune response in humans. PNAS, 111(20), 7379–7384.',
+    e:'The fast breathing activates the body, the breath hold that follows brings a brief tension, and the recovery breath releases it again. Many people feel awake and energized.',
     n:'Practise only sitting or lying down, never in water and never while driving. Stop and breathe normally if you feel dizzy. If you have a medical condition or are pregnant, check with a doctor first.'},
   slow:{w:'Slow breathing at about six breaths per minute: four seconds in, six seconds out.',
-    e:'A review of 15 studies found that slow breathing went along with more calm, well-being and alertness, and with less tension, anxiety, anger and depressive symptoms. Measurable were higher heart rate variability and more alpha activity in the EEG. The studies are inconsistent and often small.',
-    r:'Zaccaro, A. et al. (2018). How breath-control can change your life: A systematic review on psycho-physiological correlates of slow breathing. Frontiers in Human Neuroscience, 12, 353.',
+    e:'The exhale is longer than the inhale. This helps many people let go of tension and settle down, for example in the evening.',
     n:'Breathe gently and without effort. If you feel dizzy, breathe normally.'},
   sigh:{w:'Take two short sips of air through the nose, then breathe out for a long time. The exhale is longer than the inhale.',
-    e:'In a study of 108 adults, five minutes of daily breathing practice over four weeks improved mood more than mindfulness meditation, most clearly the sighing exercise. Resting breathing rate also dropped. Anxiety and negative mood fell in all groups, including the meditation group.',
-    r:'Balban, M. Y. et al. (2023). Brief structured respiration practices enhance mood and reduce physiological arousal. Cell Reports Medicine, 4(1), 100895.',
+    e:'The second short sip fills the lungs completely, the long exhale lets tension go. Good for in between, when you want to calm down quickly.',
     n:'Breathe gently. If you feel dizzy, breathe normally.'},
   med:{w:'You rest your attention on the breath without changing it. When your thoughts wander, you gently return to the breath.',
-    e:'A review of more than 40 studies on mindfulness and meditation programs found moderate evidence for less anxiety, depression and pain, and weaker evidence for stress and well-being. The programs mostly ran for weeks with guidance. A single timer is not such a program, but it gives you room to practise.',
-    r:'Goyal, M. et al. (2014). Meditation programs for psychological stress and well-being: A systematic review and meta-analysis. JAMA Internal Medicine, 174(3), 357–368.',
+    e:'You do not intervene, you just notice. This way you practice letting thoughts come and go and staying in the moment.',
     n:'Sit comfortably. If the silence becomes uncomfortable, open your eyes or stop.'},
   own:{w:'You decide how long to breathe in, hold and breathe out. With 0 seconds a hold is skipped.',
-    e:'There is no study of a freely chosen rhythm. Slow breathing with a longer exhale and about six breaths per minute is linked to more calm in studies. A good starting point is four seconds in and six out.',
-    r:'Zaccaro, A. et al. (2018). How breath-control can change your life: A systematic review on psycho-physiological correlates of slow breathing. Frontiers in Human Neuroscience, 12, 353.',
+    e:'You set the rhythm yourself. A longer exhale tends to calm, a shorter rhythm tends to wake you up. A good starting point is four seconds in and six out.',
     n:'Choose only times that feel effortless. If you feel dizzy, breathe normally. Do not practise in water or while driving.'},
   box:{w:'Breathe in, hold, breathe out and hold for equal lengths, here four seconds each.',
-    e:'In the same study, box breathing, like all exercises, lowered anxiety and negative mood. Compared with mindfulness meditation the difference in mood was not clear. The method is popular mainly because it is easy to learn.',
-    r:'Balban, M. Y. et al. (2023). Brief structured respiration practices enhance mood and reduce physiological arousal. Cell Reports Medicine, 4(1), 100895.',
+    e:'Four equally long parts give your attention a fixed frame. This helps you gather yourself before a task.',
     n:'Hold only as long as it is comfortable. If you feel dizzy, breathe normally. Do not practise in water or while driving.'}
 };
 function nCyc(P){return Math.max(1,Math.round(st.dur*60000/P.cyc))}
@@ -516,11 +505,11 @@ function buildDurs(){
 }
 function syncDurs(){buildDurs()}
 var ASK=[
-  {k:'down',l:'Wind down',s:'Let go of tension',p:'sigh',d:3,why:'Sighing: two short sips in, then a long breath out. The longer exhale calms. In one study this exercise lifted mood the most.'},
-  {k:'focus',l:'Find focus',s:'Gather yourself before a task',p:'box',d:3,why:'Box breathing: an even rhythm with short pauses. The rhythm gives your attention something to hold on to. This is experience, not study evidence.'},
+  {k:'down',l:'Wind down',s:'Let go of tension',p:'sigh',d:3,why:'Sighing: two short sips in, then a long breath out. The longer exhale calms.'},
+  {k:'focus',l:'Find focus',s:'Gather yourself before a task',p:'box',d:3,why:'Box breathing: an even rhythm with short pauses. The rhythm gives your attention something to hold on to.'},
   {k:'wake',l:'Wake up',s:'Activate in the morning',p:'wh',d:3,why:'Three rounds of deep, fast breathing with a breath hold activate the body.',warn:'Practise only sitting or lying down, never in water and never while driving. Stop if you feel dizzy. If you have a medical condition or are pregnant, check with a doctor first.'},
-  {k:'still',l:'Pause',s:'No rhythm, just observe',p:'med',d:10,why:'Observe the breath: no rhythm, just notice. Meditation programs showed moderate effects on anxiety and pain in studies.'},
-  {k:'eve',l:'Switch off tonight',s:'Settle down gently',p:'slow',d:5,why:'4-6 breathing: slow, with a longer exhale. Slow breathing went along with more calm in studies. The evidence for sleep itself is weaker. The exercise is only meant to calm you.'}
+  {k:'still',l:'Pause',s:'No rhythm, just observe',p:'med',d:10,why:'Observe the breath: no rhythm, just notice. Thoughts may come and go.'},
+  {k:'eve',l:'Switch off tonight',s:'Settle down gently',p:'slow',d:5,why:'4-6 breathing: slow, with a longer exhale. It calms and suits the evening well.'}
 ];
 var PURPOSE={
   wh:['Wake up','Activates the body, e.g. in the morning.'],
@@ -582,7 +571,6 @@ var HOWTO={
   own:'Sit comfortably. Breathe through the nose, without effort.',
   box:'Sit comfortably, shoulders loose. Breathe through the nose, without strain.'
 };
-var EVID={wh:'small, preliminary',slow:'review, mixed results',sigh:'one study, 108 people',med:'studies on meditation programs',own:'no study of its own',box:'little evidence, experience'};
 var askSel=null;
 function openAsk(){
   var last=load('wh-ask',''),g=$('ask-grid');
@@ -607,7 +595,6 @@ function applyAsk(){
   st.mode='idle';syncModes();cache.gentle=null;buildDurs();el.ask.hidden=true;
 }
 $('btn-ask').addEventListener('click',openAsk);
-$('evid').addEventListener('click',function(){el.infoBtn.click()});
 [].forEach.call($('checkin').querySelectorAll('button'),function(b){b.addEventListener('click',function(){
   var mo=getMood();mo.push(b.getAttribute('data-m'));save('wh-mood',JSON.stringify(mo.slice(-60)));st.moodDone=true;cache.stats=null;toast('Thanks, noted.')})});
 $('ask-skip').addEventListener('click',function(){el.ask.hidden=true});
@@ -616,7 +603,7 @@ $('ask-other').addEventListener('click',applyAsk);
 $('ask-go').addEventListener('click',function(){applyAsk();start()});
 function openInfo(){
   var i=INFO[st.prg];
-  $('info-h').textContent=PROGS[st.prg].name;$('info-w').textContent=i.w;$('info-e').textContent=i.e;$('info-r').textContent=i.r;$('info-n').textContent=i.n;
+  $('info-h').textContent=PROGS[st.prg].name;$('info-w').textContent=i.w;$('info-e').textContent=i.e;$('info-n').textContent=i.n;
   el.info.hidden=false;$('info-close').focus();
 }
 function closeInfo(){el.info.hidden=true;el.infoBtn.focus()}
@@ -759,8 +746,6 @@ function render(){
   setText($('sr'),'sr',(m==='run'&&vs.word&&isNaN(vs.word)&&vs.word.indexOf(':')<0)?vs.word:'');
   var pu=PURPOSE[st.prg],inPrep=(m==='run'&&ph&&ph.t==='prep'),pk=(m!=='done'&&pu)?st.prg+(inPrep?'|p':''):'';
   if(cache.pu!==pk){cache.pu=pk;var pe=$('purpose');pe.textContent='';if(pk){var pb=document.createElement('b');pb.textContent=inPrep?'How to':pu[0];pe.appendChild(pb);pe.appendChild(document.createTextNode(inPrep?HOWTO[st.prg]:pu[1]))}}
-  var evk=(m==='idle')?st.prg:'';
-  if(cache.ev!==evk){cache.ev=evk;var ev=$('evid');ev.hidden=!evk;if(evk)ev.textContent='Evidence: '+EVID[evk]+' \u203A'}
 
   var ciShow=(m==='done'&&!st.moodDone);
   if(cache.ci!==ciShow){cache.ci=ciShow;$('checkin').hidden=!ciShow}

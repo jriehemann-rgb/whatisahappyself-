@@ -69,7 +69,6 @@ body{
 .sheet h2{margin:0;font-weight:600;font-size:26px;line-height:1.2;color:var(--ink)}
 .sheet h3{margin:6px 0 0;font:600 12px/1.2 var(--f);letter-spacing:.14em;text-transform:uppercase;color:var(--accent-text)}
 .sheet p{margin:0;font-size:17px;line-height:1.5}
-.sheet .ref{font-size:13px;line-height:1.45;color:var(--muted)}
 #ask-1,#ask-2{display:flex;flex-direction:column;gap:14px}
 .week{display:flex;justify-content:center;gap:10px;margin-top:8px;min-height:34px}
 .week span{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;color:var(--muted)}
@@ -85,8 +84,6 @@ body{
 .own .oc button{width:32px;height:32px;border-radius:50%;border:1px solid var(--edge);background:transparent;color:var(--accent);font:600 18px/1 var(--f);cursor:pointer;padding:0}
 .own .oc button:active{background:var(--accent-soft)}
 .ask-grid button .rec{display:inline-block;margin-left:8px;padding:1px 8px;border-radius:999px;background:var(--accent);color:var(--accent-ink);font-size:11px;font-weight:600;letter-spacing:.02em;vertical-align:2px}
-.evid{display:block;margin:0 auto 4px;padding:5px 12px;border:1px solid var(--edge);border-radius:999px;background:transparent;color:var(--slate);font:500 13px/1.2 var(--f);cursor:pointer}
-.evid:active{background:var(--accent-soft)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .checkin{margin:6px auto 4px;display:flex;flex-direction:column;gap:8px;align-items:center;font-size:15px;color:var(--slate)}
 .checkin div{display:flex;gap:6px}
@@ -156,8 +153,7 @@ body{
   .brand{margin-top:8px;padding-top:8px}
   .purpose{margin-bottom:0}
   .logo{display:none!important}
-  .evid{display:none}
-  .legal{margin-top:5px}
+    .legal{margin-top:5px}
   body{padding-block:4px 10px}
   .purpose{min-height:0;font-size:14px;margin:0 auto 2px}
   .week{display:none}
@@ -199,7 +195,6 @@ body{
   <section class="copy">
     <h1 id="ttl" aria-live="polite"></h1>
     <p class="purpose" id="purpose"></p>
-    <button class="evid" id="evid" type="button" hidden></button>
     <div class="checkin" id="checkin" hidden><span>Wie fühlst du dich jetzt?</span><div><button type="button" data-m="calmer">Ruhiger</button><button type="button" data-m="clearer">Klarer</button><button type="button" data-m="same">Wie vorher</button></div></div>
     <div class="streak" id="streak" hidden></div>
     <div class="stats" id="stats"></div>
@@ -238,7 +233,7 @@ body{
 </div></div>
 <div class="sheet" id="info" role="dialog" aria-modal="true" aria-labelledby="info-h" hidden><div class="sheet-in">
   <h2 id="info-h"></h2><p id="info-w"></p>
-  <h3>Wirkung</h3><p id="info-e"></p><p class="ref" id="info-r"></p>
+  <h3>Wozu</h3><p id="info-e"></p>
   <p class="warn" id="info-n"></p>
   <button id="info-close" class="btn primary" type="button">Schließen</button>
 </div></div>
@@ -268,28 +263,22 @@ var BASE={slow:{cyc:10000,seg:[4000,6000]},box:{cyc:16000,seg:[4000,4000,4000,40
 function sec(ms){return String(ms/1000).replace('.',',')}
 var INFO={
   wh:{w:'Drei Runden tiefes, schnelles Atmen, danach Atem anhalten und eine kurze Erholungsatmung.',
-    e:'In einer kleinen Studie mit 24 gesunden Männern konnten Trainierte (Atemübung, Kälte, Meditation) ihr Adrenalin selbst erhöhen. Bei einer künstlich ausgelösten Entzündungsreaktion zeigten sie weniger Entzündungsbotenstoffe. Die Gruppe war klein, ein Nutzen im Alltag ist damit nicht belegt.',
-    r:'Kox, M. et al. (2014). Voluntary activation of the sympathetic nervous system and attenuation of the innate immune response in humans. PNAS, 111(20), 7379–7384.',
+    e:'Die schnelle Atmung aktiviert den Körper, der Atemhalt danach bringt eine kurze Spannung, die Erholungsatmung löst sie wieder. Viele erleben es als wach und energiegeladen.',
     n:'Nur sitzend oder liegend üben, nie im Wasser und nie beim Autofahren. Bei Schwindel abbrechen und normal atmen. Bei Vorerkrankungen oder Schwangerschaft vorher ärztlich klären.'},
   slow:{w:'Langsames Atmen mit etwa sechs Atemzügen pro Minute: vier Sekunden ein, sechs Sekunden aus.',
-    e:'Ein Überblick über 15 Studien fand: Langsames Atmen ging mit mehr Ruhe, Wohlbefinden und Wachheit sowie weniger Anspannung, Angst, Ärger und depressiven Symptomen einher. Messbar waren eine höhere Herzratenvariabilität und mehr Alpha-Aktivität im EEG. Die Studien sind uneinheitlich und oft klein.',
-    r:'Zaccaro, A. et al. (2018). How breath-control can change your life: A systematic review on psycho-physiological correlates of slow breathing. Frontiers in Human Neuroscience, 12, 353.',
+    e:'Die Ausatmung ist länger als die Einatmung. Das hilft vielen, Anspannung loszulassen und zur Ruhe zu kommen, zum Beispiel am Abend.',
     n:'Atme sanft und ohne Anstrengung. Bei Schwindel atme normal weiter.'},
   sigh:{w:'Zweimal kurz durch die Nase einatmen, dann lang ausatmen. Die Ausatmung ist länger als die Einatmung.',
-    e:'In einer Studie mit 108 Erwachsenen verbesserten fünf Minuten tägliche Atemübung über vier Wochen die Stimmung stärker als Achtsamkeitsmeditation, am deutlichsten das Seufzen. Dabei sank auch die Atemfrequenz in Ruhe. Angst und negative Stimmung gingen in allen Gruppen zurück, auch bei der Meditation.',
-    r:'Balban, M. Y. et al. (2023). Brief structured respiration practices enhance mood and reduce physiological arousal. Cell Reports Medicine, 4(1), 100895.',
+    e:'Der zweite kurze Atemzug füllt die Lunge ganz, die lange Ausatmung lässt Spannung los. Gut für zwischendurch, wenn du schnell runterkommen willst.',
     n:'Atme sanft. Bei Schwindel atme normal weiter.'},
   med:{w:'Du richtest die Aufmerksamkeit auf den Atem, ohne ihn zu verändern. Wenn die Gedanken abschweifen, kehrst du freundlich zum Atem zurück.',
-    e:'Eine Auswertung von über 40 Studien zu Achtsamkeits- und Meditationsprogrammen fand mäßige Belege für weniger Angst, Depression und Schmerz, geringere Belege für Stress und Wohlbefinden. Die Programme liefen meist über Wochen und mit Anleitung. Ein einzelner Timer ist kein solches Programm, er gibt dir aber den Raum zum Üben.',
-    r:'Goyal, M. et al. (2014). Meditation programs for psychological stress and well-being: A systematic review and meta-analysis. JAMA Internal Medicine, 174(3), 357–368.',
+    e:'Du greifst nicht ein, sondern nimmst nur wahr. So übst du, Gedanken kommen und gehen zu lassen und im Moment zu bleiben.',
     n:'Setz dich bequem hin. Wenn dir die Stille unangenehm wird, öffne die Augen oder brich ab.'},
   own:{w:'Du legst selbst fest, wie lange du einatmest, hältst und ausatmest. Mit 0 Sekunden entfällt ein Halten.',
-    e:'Für einen frei gewählten Takt gibt es keine eigene Studie. Langsames Atmen mit längerer Ausatmung und etwa sechs Atemzügen pro Minute wird in Studien mit mehr Ruhe in Verbindung gebracht. Ein guter Startpunkt ist vier Sekunden ein und sechs aus.',
-    r:'Zaccaro, A. et al. (2018). How breath-control can change your life: A systematic review on psycho-physiological correlates of slow breathing. Frontiers in Human Neuroscience, 12, 353.',
+    e:'Du bestimmst den Rhythmus selbst. Eine längere Ausatmung wirkt eher beruhigend, ein kürzerer Takt eher wach. Ein guter Startpunkt ist vier Sekunden ein und sechs aus.',
     n:'Wähle nur Zeiten, die sich mühelos anfühlen. Bei Schwindel atme normal weiter. Nicht im Wasser und nicht beim Autofahren üben.'},
   box:{w:'Gleich lang einatmen, halten, ausatmen und halten, hier jeweils vier Sekunden.',
-    e:'In derselben Studie senkte Box-Atmen wie alle Übungen Angst und negative Stimmung. Gegenüber Achtsamkeitsmeditation war der Unterschied bei der Stimmung nicht deutlich. Die Methode ist vor allem beliebt, weil sie einfach zu lernen ist.',
-    r:'Balban, M. Y. et al. (2023). Brief structured respiration practices enhance mood and reduce physiological arousal. Cell Reports Medicine, 4(1), 100895.',
+    e:'Vier gleich lange Abschnitte geben der Aufmerksamkeit einen festen Rahmen. Das hilft, sich vor einer Aufgabe zu sammeln.',
     n:'Halte nur so lange, wie es angenehm ist. Bei Schwindel atme normal weiter. Nicht im Wasser und nicht beim Autofahren üben.'}
 };
 function nCyc(P){return Math.max(1,Math.round(st.dur*60000/P.cyc))}
@@ -516,11 +505,11 @@ function buildDurs(){
 }
 function syncDurs(){buildDurs()}
 var ASK=[
-  {k:'down',l:'Runterkommen',s:'Anspannung loslassen',p:'sigh',d:3,why:'Seufzen: zweimal kurz ein, dann lang aus. Die verlängerte Ausatmung beruhigt. In einer Studie hob diese Übung die Stimmung am deutlichsten.'},
-  {k:'focus',l:'Fokus finden',s:'Sammeln vor einer Aufgabe',p:'box',d:3,why:'Box-Atmen: gleichmäßiger Takt mit kurzen Pausen. Der Rhythmus gibt der Aufmerksamkeit etwas zum Festhalten. Das ist eine Erfahrung, kein Studienbeleg.'},
+  {k:'down',l:'Runterkommen',s:'Anspannung loslassen',p:'sigh',d:3,why:'Seufzen: zweimal kurz ein, dann lang aus. Die verlängerte Ausatmung beruhigt.'},
+  {k:'focus',l:'Fokus finden',s:'Sammeln vor einer Aufgabe',p:'box',d:3,why:'Box-Atmen: gleichmäßiger Takt mit kurzen Pausen. Der Rhythmus gibt der Aufmerksamkeit etwas zum Festhalten.'},
   {k:'wake',l:'Wach werden',s:'Aktivieren am Morgen',p:'wh',d:3,why:'Drei Runden tiefes, schnelles Atmen mit Atemhalt aktivieren den Körper.',warn:'Nur sitzend oder liegend üben, nie im Wasser und nie beim Autofahren. Bei Schwindel abbrechen. Bei Vorerkrankungen oder Schwangerschaft vorher ärztlich klären.'},
-  {k:'still',l:'Innehalten',s:'Ohne Vorgabe, nur beobachten',p:'med',d:10,why:'Atem beobachten: ohne Rhythmus, nur wahrnehmen. Meditationsprogramme zeigten in Studien mäßige Effekte auf Angst und Schmerz.'},
-  {k:'eve',l:'Abends abschalten',s:'Sanft zur Ruhe kommen',p:'slow',d:5,why:'4-6 Atmen: langsam, mit längerer Ausatmung. Langsames Atmen ging in Studien mit mehr Ruhe einher. Für den Schlaf selbst ist die Belegung schwächer. Die Übung soll dich nur beruhigen.'}
+  {k:'still',l:'Innehalten',s:'Ohne Vorgabe, nur beobachten',p:'med',d:10,why:'Atem beobachten: ohne Rhythmus, nur wahrnehmen. Gedanken dürfen kommen und gehen.'},
+  {k:'eve',l:'Abends abschalten',s:'Sanft zur Ruhe kommen',p:'slow',d:5,why:'4-6 Atmen: langsam, mit längerer Ausatmung. Das beruhigt und passt gut zum Abend.'}
 ];
 var PURPOSE={
   wh:['Wach werden','Aktiviert den Körper, z. B. am Morgen.'],
@@ -582,7 +571,6 @@ var HOWTO={
   own:'Bequem sitzen. Atme durch die Nase, ohne Anstrengung.',
   box:'Bequem sitzen, Schultern locker. Durch die Nase atmen, ohne Druck.'
 };
-var EVID={wh:'klein, vorläufig',slow:'Übersichtsarbeit, uneinheitlich',sigh:'eine Studie, 108 Personen',med:'Studien zu Meditationsprogrammen',own:'keine eigene Studie',box:'kaum belegt, Erfahrungswert'};
 var askSel=null;
 function openAsk(){
   var last=load('wh-ask',''),g=$('ask-grid');
@@ -607,7 +595,6 @@ function applyAsk(){
   st.mode='idle';syncModes();cache.gentle=null;buildDurs();el.ask.hidden=true;
 }
 $('btn-ask').addEventListener('click',openAsk);
-$('evid').addEventListener('click',function(){el.infoBtn.click()});
 [].forEach.call($('checkin').querySelectorAll('button'),function(b){b.addEventListener('click',function(){
   var mo=getMood();mo.push(b.getAttribute('data-m'));save('wh-mood',JSON.stringify(mo.slice(-60)));st.moodDone=true;cache.stats=null;toast('Danke, notiert.')})});
 $('ask-skip').addEventListener('click',function(){el.ask.hidden=true});
@@ -616,7 +603,7 @@ $('ask-other').addEventListener('click',applyAsk);
 $('ask-go').addEventListener('click',function(){applyAsk();start()});
 function openInfo(){
   var i=INFO[st.prg];
-  $('info-h').textContent=PROGS[st.prg].name;$('info-w').textContent=i.w;$('info-e').textContent=i.e;$('info-r').textContent=i.r;$('info-n').textContent=i.n;
+  $('info-h').textContent=PROGS[st.prg].name;$('info-w').textContent=i.w;$('info-e').textContent=i.e;$('info-n').textContent=i.n;
   el.info.hidden=false;$('info-close').focus();
 }
 function closeInfo(){el.info.hidden=true;el.infoBtn.focus()}
@@ -759,8 +746,6 @@ function render(){
   setText($('sr'),'sr',(m==='run'&&vs.word&&isNaN(vs.word)&&vs.word.indexOf(':')<0)?vs.word:'');
   var pu=PURPOSE[st.prg],inPrep=(m==='run'&&ph&&ph.t==='prep'),pk=(m!=='done'&&pu)?st.prg+(inPrep?'|p':''):'';
   if(cache.pu!==pk){cache.pu=pk;var pe=$('purpose');pe.textContent='';if(pk){var pb=document.createElement('b');pb.textContent=inPrep?'So geht\u2019s':pu[0];pe.appendChild(pb);pe.appendChild(document.createTextNode(inPrep?HOWTO[st.prg]:pu[1]))}}
-  var evk=(m==='idle')?st.prg:'';
-  if(cache.ev!==evk){cache.ev=evk;var ev=$('evid');ev.hidden=!evk;if(evk)ev.textContent='Studienlage: '+EVID[evk]+' \u203A'}
 
   var ciShow=(m==='done'&&!st.moodDone);
   if(cache.ci!==ciShow){cache.ci=ciShow;$('checkin').hidden=!ciShow}
