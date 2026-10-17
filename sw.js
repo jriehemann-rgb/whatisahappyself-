@@ -1,6 +1,6 @@
 /* Offline-Cache für Happy Breath, Happy Habits und die Install-/Startseiten. Netz zuerst, damit Updates ankommen; ohne Netz kommt der Cache. */
-var V='hb-v2';
-var PRE=['./','fonts/bricolage.woff2','habits/','install/','coaching/','coaching/en/','coaching/start/','coaching/en/start/','en/','impressum/','datenschutz/','icon-512.png'];
+var V='hb-v3';
+var PRE=['./','fonts/bricolage.woff2','habits/','install/','coaching/','coaching/en/','coaching/start/','coaching/en/start/','en/','impressum/','datenschutz/','icon-512.png','logo.png'];
 self.addEventListener('install',function(e){
   e.waitUntil(caches.open(V).then(function(c){return Promise.all(PRE.map(function(u){return c.add(u).catch(function(){})}))}).then(function(){return self.skipWaiting()}));
 });
