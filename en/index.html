@@ -135,7 +135,7 @@ body{
 .round{min-width:0}
 .bar{height:4px;border-radius:2px;background:var(--line);overflow:hidden}
 .bar i{display:block;height:100%;width:0;background:var(--accent)}
-.lab{margin-top:8px;display:flex;flex-direction:column;font-size:13px;line-height:1.35;color:var(--muted)}
+.lab{white-space:nowrap;margin-top:8px;display:flex;flex-direction:column;font-size:13px;line-height:1.35;color:var(--muted)}
 .lab b{font-weight:600}
 .round.is-now .lab b{color:var(--accent-text)}
 .round.is-done .lab b{color:var(--ink)}
@@ -146,7 +146,7 @@ body{
 .icon-btn[aria-pressed="false"] .off{display:inline}
 .icon-btn[aria-pressed="false"]{color:var(--muted)}
 
-.stage{flex:1.5 1 0;min-height:98px;display:grid;place-items:center}
+.stage{flex:2.4 1 0;min-height:98px;display:grid;place-items:center}
 .orb{position:relative}
 .orb canvas{display:block}
 .core{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
@@ -196,9 +196,9 @@ body{
 <div class="app">
   <header class="top">
     <div class="rounds" id="rounds">
-      <div class="round" aria-label="Round 1"><div class="bar"><i></i></div><div class="lab"><b>30 seconds</b><span>+ 15 sec.</span></div></div>
-      <div class="round" aria-label="Round 2"><div class="bar"><i></i></div><div class="lab"><b>1 minute</b><span>+ 15 sec.</span></div></div>
-      <div class="round" aria-label="Round 3"><div class="bar"><i></i></div><div class="lab"><b>1:30 minutes</b><span>+ 15 sec.</span></div></div>
+      <div class="round" aria-label="Round 1"><div class="bar"><i></i></div><div class="lab"><b>0:30 min</b><span>+ 15 sec.</span></div></div>
+      <div class="round" aria-label="Round 2"><div class="bar"><i></i></div><div class="lab"><b>1:00 min</b><span>+ 15 sec.</span></div></div>
+      <div class="round" aria-label="Round 3"><div class="bar"><i></i></div><div class="lab"><b>1:30 min</b><span>+ 15 sec.</span></div></div>
     </div>
     <div class="rounds solo" id="solo" hidden><div class="round is-now"><div class="bar"><i></i></div><div class="lab"><b id="solo-t"></b><span id="solo-s"></span></div></div></div>
     <button id="btn-info" class="icon-btn" type="button" aria-label="About this exercise"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 7.8v.1"/></svg></button>
@@ -252,7 +252,7 @@ body{
   <div class="toneRow"><span>Sound style</span><button class="btn" id="btn-tone" type="button" style="min-height:40px;font-size:14px"></button></div>
   <div class="toneRow" id="row-vib"><span>Vibrate on phase change</span><button class="btn" id="btn-vib" type="button" style="min-height:40px;font-size:14px"></button></div>
   <p class="hint">No sound? On iPhone, check the silent switch and turn the volume up.</p>
-  <div class="remind"><span>Daily reminder</span><div><input type="time" id="rem-time" value="08:00" aria-label="Time"><button class="btn" id="btn-rem" type="button" style="min-height:40px;font-size:14px">Add to calendar</button></div></div>
+  <div class="remind"><span>Daily reminder</span><div><input type="time" id="rem-time" value="08:00" aria-label="Time"><button class="btn" id="btn-rem" type="button" style="min-height:40px;font-size:14px">Calendar</button></div></div>
   <div class="remind"><span>Progress</span><div><button class="btn" id="btn-exp" type="button" style="min-height:40px;font-size:14px">Back up</button><button class="btn" id="btn-imp" type="button" style="min-height:40px;font-size:14px">Restore</button><input type="file" id="file-imp" accept="application/json,.json" hidden></div></div>
   <button class="btn primary" id="pick-close" type="button">Done</button>
 </div></div>
@@ -608,7 +608,7 @@ function ownSet(a){if(a[0]+a[2]<4)return false;save('wh-own',a.join(','));return
 function applyOwn(){
   var a=ownGet(),P=PROGS.own;
   P.seg=a.map(function(x){return x*1000});P.cyc=P.seg.reduce(function(x,y){return x+y},0);
-  P.t='In '+a[0]+', hold '+a[1]+', out '+a[2]+', hold '+a[3];
+  P.t='In '+a[0]+(a[1]?', hold '+a[1]:'')+', out '+a[2]+(a[3]?', hold '+a[3]:'');
 }
 function applyPace(){
   applyOwn();
