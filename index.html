@@ -76,7 +76,8 @@ body{
 
 .top{display:flex;align-items:flex-start;gap:14px;min-height:44px}
 .rounds{flex:1;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.rounds.solo{grid-template-columns:1fr}
+.rounds.solo{grid-template-columns:minmax(0,1fr)}
+.rounds{min-width:0}.rounds .lab{min-width:0}.rounds.solo .lab b{white-space:normal;overflow-wrap:anywhere}
 .top .icon-btn+.icon-btn{margin-left:-6px}
 .sheet{position:fixed;inset:0;z-index:10;background:var(--bg);overflow:auto;-webkit-user-select:text;user-select:text;padding:max(20px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(20px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
 .sheet-in{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
@@ -132,6 +133,12 @@ body{
 .toast{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);max-width:min(340px,86vw);padding:10px 16px;border-radius:14px;background:#3a2418;color:#f1e0c6;font-size:14px;line-height:1.4;text-align:center;z-index:30;box-shadow:0 6px 24px rgba(58,36,24,.25)}
 .stats{min-height:1.2em;margin-top:2px;font-size:14px;color:var(--muted);text-align:center;letter-spacing:.02em}
 .pickbtn{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;max-width:380px;margin:6px auto 0;min-height:48px;padding:0 18px;border:1px solid var(--edge);border-radius:999px;background:transparent;color:var(--ink);font:500 16px/1.2 var(--f);cursor:pointer}
+.chips{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x proximity;margin:6px -16px 0;padding:2px 16px 4px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;scroll-snap-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-width:78px;min-height:62px;padding:8px 10px;border:1px solid var(--edge);border-radius:16px;background:transparent;color:var(--ink);font:500 13px/1.1 var(--f);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.chip svg{width:22px;height:22px;fill:none;stroke:var(--accent);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.chip[aria-checked=true]{background:var(--accent-soft);border-color:var(--accent)}
+.chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .pickbtn small{color:var(--muted);font-size:13px}
 .pickbtn:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 .pickbtn svg,.ask-grid svg{width:22px;height:22px;flex:none;fill:none;stroke:var(--accent);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
@@ -240,7 +247,7 @@ body{
   </section>
 
   <button class="linkbtn" id="btn-ask" type="button">Was brauche ich gerade?</button>
-  <div id="modes"><button class="pickbtn" id="btn-pick" type="button" aria-haspopup="dialog"><span id="pick-l"></span><small>ändern</small></button></div>
+  <div id="modes"><div class="chips" id="chips" role="radiogroup" aria-label="Übung"></div></div>
   <div class="rowlab" id="lab-dur">Dauer</div>
   <div class="seg" id="durs" role="radiogroup" aria-label="Dauer"></div>
   <div class="rowlab" id="lab-seg">Tempo</div>
@@ -261,7 +268,7 @@ body{
   <button class="btn primary" id="ask-go" type="button">Starten</button><button class="btn" id="ask-other" type="button">Andere Übung wählen</button><button class="linkbtn" id="ask-back" type="button">Zurück</button></div>
 </div></div>
 <div class="sheet" id="pick" role="dialog" aria-modal="true" aria-labelledby="pick-h" hidden><div class="sheet-in">
-  <h2 id="pick-h">Übung wählen</h2><div class="ask-grid" id="pick-grid"></div>
+  <h2 id="pick-h">Übungen &amp; Einstellungen</h2><div class="ask-grid" id="pick-grid"></div>
   <div class="toneRow"><span>Klang</span><button class="btn" id="btn-tone" type="button" style="min-height:40px;font-size:14px"></button></div>
   <div class="toneRow"><span>Einschlaf-Modus</span><button class="btn" id="btn-sleep" type="button" style="min-height:40px;font-size:14px"></button></div>
   <div class="toneRow" id="row-vib"><span>Vibration bei Wechsel</span><button class="btn" id="btn-vib" type="button" style="min-height:40px;font-size:14px"></button></div>
@@ -737,9 +744,25 @@ function closeInfo(){el.info.hidden=true;el.infoBtn.focus()}
 el.infoBtn.addEventListener('click',openInfo);
 $('info-close').addEventListener('click',closeInfo);
 document.addEventListener('keydown',function(ev){if(ev.key==='Escape'&&!el.info.hidden)closeInfo()});
+var SHORT={wh:'Energie',slow:'4-6 Atmen',sigh:'Seufzen',box:'Box',med:'Beobachten',own:'Eigener Takt'};
+function pickPrg(key){st.prg=key;save('wh-prg',key);st.mode='idle';syncModes();cache.gentle=null;buildDurs()}
 function syncModes(){
-  var l=$('pick-l');l.textContent='';l.insertAdjacentHTML('beforeend',icon(PROGS[st.prg].ic)+' ');
-  var sp=document.createElement('span');sp.textContent=' '+PROGS[st.prg].name;l.appendChild(sp);l.style.display='inline-flex';l.style.alignItems='center';l.style.gap='8px';
+  var c=$('chips'),first=!c.firstChild;
+  if(first){
+    ['wh','slow','sigh','box','med','own'].forEach(function(key){
+      var b=document.createElement('button');b.type='button';b.className='chip';b.setAttribute('role','radio');b.setAttribute('data-k',key);
+      b.insertAdjacentHTML('beforeend',icon(PROGS[key].ic));
+      var t=document.createElement('span');t.textContent=SHORT[key];b.appendChild(t);
+      b.addEventListener('click',function(){if(st.prg!==key)pickPrg(key)});
+      c.appendChild(b);
+    });
+    var m=document.createElement('button');m.type='button';m.className='chip';m.id='btn-pick';m.setAttribute('aria-haspopup','dialog');
+    m.insertAdjacentHTML('beforeend',icon('sliders'));var mt=document.createElement('span');mt.textContent='Mehr';m.appendChild(mt);
+    m.addEventListener('click',openPick);c.appendChild(m);el.pickBtn=m;
+  }
+  var cs=c.querySelectorAll('.chip[data-k]'),k,on=null;
+  for(k=0;k<cs.length;k++){var sel=cs[k].getAttribute('data-k')===st.prg;cs[k].setAttribute('aria-checked',sel?'true':'false');if(sel)on=cs[k]}
+  if(on){var x=on.offsetLeft-(c.clientWidth-on.offsetWidth)/2;if(c.scrollTo)c.scrollTo({left:Math.max(0,x),behavior:first?'auto':'smooth'});else c.scrollLeft=Math.max(0,x)}
 }
 function sleepLabel(){$('btn-sleep').textContent=st.sleep?'An':'Aus'}
 function vibLabel(){$('btn-vib').textContent=st.vib?'An':'Aus'}
@@ -751,12 +774,11 @@ function openPick(){
     b.insertAdjacentHTML('beforeend',icon(P.ic));
     var t=document.createElement('span');t.className='tx';t.appendChild(document.createTextNode(P.name));
     var sm=document.createElement('small');sm.textContent=P.d;t.appendChild(sm);b.appendChild(t);
-    b.addEventListener('click',function(){st.prg=key;save('wh-prg',key);st.mode='idle';syncModes();cache.gentle=null;buildDurs();el.pick.hidden=true;el.pickBtn.focus()});
+    b.addEventListener('click',function(){pickPrg(key);el.pick.hidden=true;el.pickBtn.focus()});
     g.appendChild(b);
   });
   toneLabel();vibLabel();sleepLabel();$('row-vib').hidden=!navigator.vibrate;el.pick.hidden=false;$('pick-close').focus();
 }
-el.pickBtn.addEventListener('click',openPick);
 $('pick-close').addEventListener('click',function(){el.pick.hidden=true;el.pickBtn.focus()});
 $('btn-sleep').addEventListener('click',function(){st.sleep=!st.sleep;save('wh-sleep',st.sleep?'on':'off');sleepLabel();toast(st.sleep?'Einschlaf-Modus: dunkler Bildschirm, Töne werden leiser, kein Schlussklang.':'Einschlaf-Modus aus.')});
 $('btn-vib').addEventListener('click',function(){st.vib=!st.vib;save('wh-vib',st.vib?'on':'off');vibLabel();if(st.vib)buzz(40)});
