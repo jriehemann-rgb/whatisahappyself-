@@ -57,7 +57,9 @@ body.sleep .orb{opacity:.6}
 body.sleep .btn.primary{background:#4a2813;border-color:#4a2813;color:#cdb99d}
 html:has(body.sleep){background:#0b0806}
 body.isdone .rowlab,body.isdone #durs,body.isdone #seg,body.isdone #own,body.isdone #pace{display:none!important}
-body.focus .stage{flex:3 1 0}
+body.focus .stage{flex:none;width:100%;max-width:460px;aspect-ratio:1/1;min-height:0;margin:auto auto 0}
+body.focus .copy{flex:none;display:block;height:52px;min-height:0;margin-bottom:auto;overflow:visible}
+@media (max-height:700px){body.focus .stage{max-width:min(100%,300px)}body.focus .copy{height:40px}}
 body.focus .logo{opacity:.0;pointer-events:none;transition:opacity .6s}
 body.focus .btn.primary:not(.quiet){color:#fff8ee}
 html:has(body.focus){background:#18120d}
