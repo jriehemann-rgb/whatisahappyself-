@@ -40,6 +40,12 @@
   --f:'Bricolage Grotesque',system-ui,-apple-system,'Segoe UI',sans-serif;
   color-scheme:light;
 }
+#splash{position:fixed;inset:0;z-index:60;background:#f1e0c6;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity .6s ease}
+#splash.out{opacity:0;pointer-events:none}
+#splash img{width:min(62vw,260px);height:auto;opacity:0;animation:spIn .9s .15s ease forwards}
+#splash b{font:700 13px/1 var(--f);letter-spacing:.18em;text-transform:uppercase;color:#1a1511;opacity:0;animation:spIn .9s .55s ease forwards}
+@keyframes spIn{from{opacity:0;transform:translateY(6px) scale(.97)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){#splash img,#splash b{animation:none;opacity:1}}
 html{height:100%}
 body{transition:background-color .9s ease,color .9s ease}
 body.focus{--bg:#18120d;--ink:#f1e0c6;--slate:#cbb89a;--muted:#a69580;--line:#3b2e24;--edge:#54443a;--accent-text:#e8935a;--accent-soft:rgba(232,147,90,.16);color-scheme:dark}
@@ -278,6 +284,7 @@ body{
   <button id="info-close" class="btn primary" type="button">Close</button>
 </div></div>
 
+  <div id="splash" aria-hidden="true"><img src="../logo.png" alt="" width="300" height="281"><b>Happy Breath</b></div>
   <div class="sr" id="sr" aria-live="polite" aria-atomic="true"></div>
   <div class="toast" id="toast" role="status" hidden></div>
   <footer class="brand"><img class="logo" src="../logo.png" alt="What is a Happy Self" width="300" height="281"><div class="legal"><a href="../impressum/">Legal notice</a> · <a href="../datenschutz/">Privacy</a> · <a href="../" hreflang="de">Deutsch</a></div></footer>
@@ -1019,6 +1026,15 @@ syncSound();syncSeg();syncModes();syncDurs();
     if(ak)for(ai=0;ai<ASK.length;ai++)if(ASK[ai].k===ak)ae=ASK[ai];
     if(ae)openRec(ae);
   }
+})();
+(function(){
+  var sp=$('splash');if(!sp)return;
+  var skip=false;try{skip=sessionStorage.getItem('wh-splash')==='1'}catch(e){}
+  if(skip||/[?&]start=/.test(location.search)){sp.parentNode.removeChild(sp);return}
+  try{sessionStorage.setItem('wh-splash','1')}catch(e){}
+  var done=false,rm=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function end(){if(done)return;done=true;sp.classList.add('out');setTimeout(function(){if(sp.parentNode)sp.parentNode.removeChild(sp)},700)}
+  sp.addEventListener('click',end);setTimeout(end,rm?900:2300);
 })();
 if(window.ResizeObserver){new ResizeObserver(resize).observe(el.stage)}
 window.addEventListener('resize',resize);
