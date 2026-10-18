@@ -50,6 +50,7 @@ body.sleep{--bg:#0b0806;--ink:#bba88e;--slate:#9d8d77;--muted:#7d6f5d;--line:#24
 body.sleep .orb{opacity:.6}
 body.sleep .btn.primary{background:#4a2813;border-color:#4a2813;color:#cdb99d}
 html:has(body.sleep){background:#0b0806}
+body.isdone .rowlab,body.isdone #durs,body.isdone #seg,body.isdone #own,body.isdone #pace{display:none!important}
 body.focus .stage{flex:3 1 0}
 body.focus .logo{opacity:.0;pointer-events:none;transition:opacity .6s}
 body.focus .btn.primary:not(.quiet){color:#fff8ee}
@@ -869,7 +870,7 @@ function render(){
   setText(el.word,'word',vs.word);
   setText(el.ttl,'ttl',title);
   setText($('sr'),'sr',(m==='run'&&vs.word&&isNaN(vs.word)&&vs.word.indexOf(':')<0)?vs.word:'');
-  var pu=PURPOSE[st.prg],inPrep=(m==='run'&&ph&&ph.t==='prep'),pk=(m!=='done'&&pu)?st.prg+(inPrep?'|p':''):'';
+  var pu=PURPOSE[st.prg],inPrep=(m==='run'&&ph&&ph.t==='prep'),pk=((m==='idle'||inPrep)&&pu)?st.prg+(inPrep?'|p':''):'';
   if(cache.pu!==pk){cache.pu=pk;var pe=$('purpose');pe.textContent='';if(pk){var pb=document.createElement('b');pb.textContent=inPrep?'So geht\u2019s':pu[0];pe.appendChild(pb);pe.appendChild(document.createTextNode(inPrep?HOWTO[st.prg]:pu[1]))}}
 
   var ciShow=(m==='done'&&!st.moodDone);
@@ -880,7 +881,7 @@ function render(){
   if(cache.nx!==nx){cache.nx=nx;var nb=$('nextbtn');nb.hidden=!nx;if(nx)nb.textContent='Als Nächstes: '+askFor(NEXT[nx]).l+' \u203A'}
   var pi=(m==='idle')?pathInfo():null,pik=pi?pi.t+'|'+(pi.plain?1:0):'';
   if(cache.pi!==pik){cache.pi=pik;var pr=$('pathrow');pr.hidden=!pi;if(pi){var pb2=$('path-btn');pb2.textContent=pi.t;pb2.className='pathbtn'+(pi.plain?' plain':'')}}
-  setText(el.stats,'stats',(m==='idle'||m==='done')?statsText():'');
+  setText(el.stats,'stats',m==='done'?statsText():'');
   renderWeek(m==='idle'||m==='done');
   setText(el.main,'main',m==='idle'?(st.prg==='wh'?'Atmung starten':'Übung starten'):m==='run'?'Pausieren':m==='pause'?'Fortsetzen':'Noch einmal atmen');
   var wide=(m==='idle'||m==='done');
@@ -889,6 +890,7 @@ function render(){
   var gentle=st.prg!=='wh';
   if(cache.gentle!==gentle){cache.gentle=gentle;el.rounds.hidden=gentle;el.solo.hidden=!gentle;if(gentle){setText(el.soloT,'st',PROGS[st.prg].t);setText(el.soloS,'ss',totalLabel(PROGS[st.prg]))}}
   if(gentle){setText(el.soloT,'st',PROGS[st.prg].t);setText(el.soloS,'ss',totalLabel(PROGS[st.prg]))}
+  var dn=(m==='done');if(cache.dn!==dn){cache.dn=dn;document.body.classList.toggle('isdone',dn)}
   var foc=(m==='run'||m==='pause'||(m==='done'&&st.sleepRun));
   var slp=foc&&st.sleepRun;if(cache.slp!==slp){cache.slp=slp;document.body.classList.toggle('sleep',slp)}
   if(slp&&master&&ac&&m==='run'){try{master.gain.setTargetAtTime(0.9*(1-0.85*Math.min(1,st.prog||0)),ac.currentTime,0.6)}catch(e){}}
