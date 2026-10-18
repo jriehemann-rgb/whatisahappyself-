@@ -1036,6 +1036,22 @@ syncSound();syncSeg();syncModes();syncDurs();
   try{sessionStorage.setItem('wh-splash','1')}catch(e){}
   var done=false,rm=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
   function end(){if(done)return;done=true;sp.classList.add('out');setTimeout(function(){if(sp.parentNode)sp.parentNode.removeChild(sp)},700)}
+  /* Begrüßungsklang: weiche, aufsteigende Glocke. Browser erlauben Ton oft erst nach der ersten Berührung. */
+  var chimed=false;
+  function play(){
+    if(chimed||!st.sound||!ac||ac.state!=='running')return;
+    chimed=true;
+    var n=[523.25,659.25,783.99],k;
+    for(k=0;k<n.length;k++)tone(n[k],k<2?1.6:2.6,{bell:true,delay:0.5+k*0.22,gain:0.06});
+  }
+  function chime(){
+    if(chimed||!st.sound)return;
+    initAudio();if(!ac)return;
+    if(ac.state==='running'){play();return}
+    try{var r=ac.resume();if(r&&r.then)r.then(play,function(){})}catch(e){}
+  }
+  chime();
+  sp.addEventListener('pointerdown',function(){if(!done)chime()});
   sp.addEventListener('click',end);setTimeout(end,rm?900:2300);
 })();
 if(window.ResizeObserver){new ResizeObserver(resize).observe(el.stage)}
